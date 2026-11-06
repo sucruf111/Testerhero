@@ -78,7 +78,7 @@ export function Story({ loggedIn, freeSlots }: { loggedIn: boolean; freeSlots: n
     section.dataset.mode = "3d";
 
     const mobile = window.matchMedia("(max-width: 767px)").matches;
-    const products: ExampleProduct[] = pickRandomProducts(mobile ? 6 : 8);
+    const products: ExampleProduct[] = pickRandomProducts(mobile ? 5 : 6);
     const winnerIndex = Math.floor(Math.random() * products.length);
     let engine: StoryEngine | null = null;
     let disposed = false;

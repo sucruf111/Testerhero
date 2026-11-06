@@ -11,6 +11,7 @@ import {
   MathUtils,
   type Material,
   Mesh,
+  type Object3D,
   MeshStandardMaterial,
   NeutralToneMapping,
   PerspectiveCamera,
@@ -20,6 +21,7 @@ import {
   ShaderMaterial,
   Shape,
   SRGBColorSpace,
+  TextureLoader,
   Timer,
   Vector3,
   WebGLRenderer,
@@ -28,7 +30,8 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { modelUrl, type ExampleProduct } from "./products";
+import { createPackageBox } from "./product-box";
+import { boxTextureUrl, modelUrl, type ExampleProduct } from "./products";
 import { createConfetti } from "./confetti";
 import { backgroundShader, beamShader, roadShader, shadowShader } from "./shaders";
 
@@ -233,45 +236,67 @@ export function createStory(opts: Options): StoryEngine {
   scene.add(ring);
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
+  const textureLoader = new TextureLoader();
   const loadedMaterials = new Set<Material>();
   const items = products.map((p) => {
     const holder = new Group();
     const obj = new Group(); // dreht sich, enthält das Modell, sobald es geladen ist
     holder.add(obj);
     ring.add(holder);
-    loader
-      .loadAsync(modelUrl(p))
-      .then((gltf) => {
-        if (disposed) return;
-        const model = gltf.scene;
-        // auf Größe 1 bringen und mittig ausrichten
-        const bounds = new Box3().setFromObject(model);
-        const size = bounds.getSize(new Vector3());
-        const center = bounds.getCenter(new Vector3());
-        const scale = 1 / Math.max(size.x, size.y, size.z);
-        model.position.copy(center).multiplyScalar(-scale);
-        model.scale.setScalar(scale);
-        // Vorderseite nach vorn drehen (um die eigene Mitte)
-        const front = new Group();
-        front.rotation.y = p.yaw ?? 0;
-        front.add(model);
-        model.traverse((o) => {
-          const m = (o as Mesh).material as MeshStandardMaterial | undefined;
-          if (!m) return;
-          loadedMaterials.add(m);
-          // ruhiger wirken lassen: weniger Spiegelung, flachere Oberflächenstruktur
-          m.envMapIntensity = 0.7;
-          m.metalness *= 0.55;
-          m.normalScale?.setScalar(0.55);
-        });
-        obj.add(front);
-      })
-      .catch((error) => console.warn("Modell nicht geladen:", p.id, error));
+
+    /** Alle Produkte gleich hoch wie im Regal, sehr breite begrenzt, Vorderseite nach vorn */
+    const place = (model: Object3D) => {
+      const bounds = new Box3().setFromObject(model);
+      const size = bounds.getSize(new Vector3());
+      const center = bounds.getCenter(new Vector3());
+      const target = p.size ?? 1;
+      const scale = Math.min(target / size.y, (1.3 * target) / size.x);
+      model.position.copy(center).multiplyScalar(-scale);
+      model.scale.setScalar(scale);
+      const front = new Group();
+      front.rotation.y = p.yaw ?? 0;
+      front.add(model);
+      obj.add(front);
+    };
+
+    if (p.box) {
+      // Kartons bauen wir selbst: Produktfoto als Vorderseite
+      const depthRatio = p.box.depth;
+      textureLoader
+        .loadAsync(boxTextureUrl(p))
+        .then((texture) => {
+          if (disposed) return texture.dispose();
+          texture.colorSpace = SRGBColorSpace;
+          texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+          const box = createPackageBox(texture, depthRatio);
+          loadedMaterials.add(box.material);
+          place(box);
+        })
+        .catch((error) => console.warn("Karton nicht geladen:", p.id, error));
+    } else {
+      loader
+        .loadAsync(modelUrl(p))
+        .then((gltf) => {
+          if (disposed) return;
+          const model = gltf.scene;
+          model.traverse((o) => {
+            const m = (o as Mesh).material as MeshStandardMaterial | undefined;
+            if (!m) return;
+            loadedMaterials.add(m);
+            // ruhiger wirken lassen: weniger Spiegelung, flachere Oberflächenstruktur
+            m.envMapIntensity = 0.7;
+            m.metalness *= 0.55;
+            m.normalScale?.setScalar(0.55);
+          });
+          place(model);
+        })
+        .catch((error) => console.warn("Modell nicht geladen:", p.id, error));
+    }
     return { holder, obj };
   });
   const n = items.length;
   const ringRadius = mobile ? 1.85 : 2.5;
-  const itemScale = mobile ? 1.0 : 1.02;
+  const itemScale = mobile ? 0.95 : 1.0;
   const turns = 3;
   const spinFinal = -(winnerIndex * (Math.PI * 2)) / n - turns * Math.PI * 2;
   const winner = items[winnerIndex];
@@ -281,8 +306,9 @@ export function createStory(opts: Options): StoryEngine {
   ring.add(frontSlot);
 
   // Ring-Transformation ist fest: Weltpunkte einmal in Ring-Koordinaten umrechnen
-  const RING_Y = 0.25;
-  const RING_TILT = 0.16;
+  // stärker geneigt: vorne laufen die Produkte tiefer, die Geschenkbox bleibt sichtbar
+  const RING_Y = 0.15;
+  const RING_TILT = 0.24;
   const toRing = (x: number, y: number, z: number) =>
     new Vector3(x, y - RING_Y, z).applyAxisAngle(new Vector3(1, 0, 0), -RING_TILT);
   const PATH = {
@@ -504,8 +530,9 @@ export function createStory(opts: Options): StoryEngine {
       // Die Vorderseite der Verpackung zeigt zur Kamera, die Produkte schwingen nur leicht:
       // so bleibt das Etikett lesbar und man erkennt das Produkt sofort
       const revealed = isWinner && rise > 0;
-      it.obj.rotation.y = -0.25 + Math.sin(t * (revealed ? 0.6 : 0.7) + i * 1.3) * (revealed ? 0.35 : 0.45);
-      it.obj.rotation.x = 0.06 + Math.sin(t * 0.8 + i) * 0.05;
+      // nur ±10°: die Seiten der Modelle bleiben aus dem Blick
+      it.obj.rotation.y = -0.1 + Math.sin(t * (revealed ? 0.6 : 0.7) + i * 1.3) * (revealed ? 0.16 : 0.18);
+      it.obj.rotation.x = 0.04 + Math.sin(t * 0.8 + i) * 0.03;
     });
 
     // ── Sterne ──
