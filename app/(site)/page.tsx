@@ -1,4 +1,5 @@
-import { ArrowRight, Check, Gift, PackageCheck, PenLine, Truck } from "lucide-react";
+import { Check } from "lucide-react";
+import { Story } from "@/components/story/story";
 import { LinkButton } from "@/components/ui/button";
 import { Alert } from "@/components/ui/form";
 import { getCurrentTester } from "@/lib/auth/session";
@@ -48,61 +49,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       )}
 
-      {/* Einstieg */}
-      <section className="border-b border-line bg-gradient-to-b from-coral-50/80 to-white">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-          <div className="animate-fade-up">
-            <h1 className="font-display text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl lg:text-[3.4rem]">
-              Überraschungspakete testen <span className="text-coral-500">und behalten.</span>
-            </h1>
-            <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-ink-soft">
-              Melde dich kostenlos an. Ab und zu schicken wir dir ein neues Produkt nach Hause. Was drin ist, siehst du erst
-              beim Auspacken. Du testest es, sagst uns deine Meinung und darfst es behalten.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              {tester ? (
-                <LinkButton href="/konto" size="lg">
-                  Zu meinen Paketen <ArrowRight />
-                </LinkButton>
-              ) : (
-                <>
-                  <LinkButton href="/registrieren" size="lg">
-                    Kostenlos mitmachen <ArrowRight />
-                  </LinkButton>
-                  <LinkButton href="#so-gehts" size="lg" variant="secondary">
-                    So geht’s
-                  </LinkButton>
-                </>
-              )}
-            </div>
-            <p className="mt-4 text-sm text-muted">Die Anmeldung dauert zwei Minuten. Abmelden geht jederzeit.</p>
-          </div>
-
-          <PackagePreview />
-        </div>
-      </section>
-
-      {/* So geht's */}
-      <section id="so-gehts" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-12 sm:px-6">
-        <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">So geht’s</h2>
-        <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { title: "Anmelden", text: "Konto anlegen und Lieferadresse eintragen. Mehr musst du nicht tun." },
-            { title: "Ausgelost werden", text: "Gibt es ein neues Produkt, losen wir aus, wer es bekommt. Du bekommst dann eine E-Mail." },
-            { title: "Auspacken", text: "Das Paket kommt zu dir nach Hause. Erst beim Auspacken siehst du, was drin ist." },
-            { title: "Bewerten", text: "Probier das Produkt aus und schreib uns kurz, wie es dir gefällt. Behalten darfst du es." },
-          ].map((step, i) => (
-            <li key={step.title} className="rounded-2xl border border-line p-4">
-              <span className="grid size-7 place-items-center rounded-lg bg-coral-500 text-sm font-bold text-white">{i + 1}</span>
-              <h3 className="mt-3 font-semibold">{step.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted">{step.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <Story loggedIn={Boolean(tester)} />
 
       {/* Regeln + Fragen */}
-      <section id="fragen" className="mx-auto grid max-w-6xl scroll-mt-20 gap-8 px-4 sm:px-6 lg:grid-cols-[22rem_1fr]">
+      <section id="fragen" className="mx-auto mt-14 grid max-w-6xl scroll-mt-20 gap-8 px-4 sm:px-6 lg:grid-cols-[22rem_1fr]">
         <div id="regeln" className="self-start rounded-2xl bg-ink p-6 text-white">
           <h2 className="font-display text-xl font-bold">Die Regeln</h2>
           <ul className="mt-4 space-y-2.5 text-sm text-white/80">
@@ -136,48 +86,5 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
     </>
-  );
-}
-
-/** Vorschau, wie ein Paket im Konto aussieht */
-function PackagePreview() {
-  const rows = [
-    { icon: Gift, title: "Du wurdest ausgelost", text: "Wir packen dein Paket.", done: true },
-    { icon: Truck, title: "Paket unterwegs", text: "Kommt direkt zu dir nach Hause", done: true },
-    { icon: PackageCheck, title: "Auspacken", text: "Jetzt siehst du, was drin ist.", done: false },
-    { icon: PenLine, title: "Bewerten", text: "Ein paar Sätze reichen.", done: false },
-  ];
-  return (
-    <div className="mx-auto w-full max-w-sm rounded-2xl border border-line bg-white p-5 shadow-lift lg:mr-0">
-      <div className="flex items-center gap-3">
-        <span className="grid size-12 place-items-center rounded-xl bg-coral-500 text-white">
-          <Gift className="size-6" />
-        </span>
-        <div>
-          <p className="font-semibold">Überraschungspaket</p>
-          <p className="text-sm text-muted">Was drin ist? Siehst du beim Auspacken.</p>
-        </div>
-      </div>
-      <ol className="mt-5 space-y-3">
-        {rows.map((r) => (
-          <li key={r.title} className="flex items-center gap-3">
-            <span
-              className={
-                r.done
-                  ? "grid size-8 shrink-0 place-items-center rounded-lg bg-coral-50 text-coral-600"
-                  : "grid size-8 shrink-0 place-items-center rounded-lg bg-sand text-muted"
-              }
-            >
-              <r.icon className="size-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className={r.done ? "text-sm font-semibold" : "text-sm font-semibold text-muted"}>{r.title}</p>
-              <p className="text-xs text-muted">{r.text}</p>
-            </div>
-            {r.done && <Check className="size-4 text-emerald-600" />}
-          </li>
-        ))}
-      </ol>
-    </div>
   );
 }

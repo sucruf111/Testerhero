@@ -103,3 +103,165 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ───────────── Scroll-Geschichte auf der Startseite ───────────── */
+.story {
+  position: relative;
+  height: 430vh;
+}
+.story-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 75% 40%, rgb(255 204 184 / 0.75), transparent 70%),
+    radial-gradient(50% 45% at 20% 70%, rgb(225 220 255 / 0.8), transparent 70%),
+    radial-gradient(45% 40% at 60% 90%, rgb(255 230 163 / 0.6), transparent 70%),
+    #fbf8f4;
+}
+.story-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.story[data-ready="true"] .story-canvas {
+  opacity: 1;
+}
+.story-poster {
+  transition: opacity 0.5s ease;
+  animation: story-bob 4s ease-in-out infinite;
+}
+.story[data-ready="true"] .story-poster {
+  opacity: 0;
+}
+@keyframes story-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+.story-caption,
+.story-label {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.story-scrollhint {
+  animation: story-hint 1.8s ease-in-out infinite;
+}
+@keyframes story-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@media (max-width: 767px) {
+  .story {
+    height: 380vh;
+  }
+}
+
+/* Ruhige Ansicht: ohne 3D, ohne Scroll-Effekte */
+.story[data-mode="static"] {
+  height: auto;
+}
+.story[data-mode="static"] .story-stage {
+  position: relative;
+  height: auto;
+  overflow: visible;
+}
+.story[data-mode="static"] .story-canvas,
+.story[data-mode="static"] .story-label,
+.story[data-mode="static"] .story-dots,
+.story[data-mode="static"] .story-scrollhint {
+  display: none;
+}
+.story[data-mode="static"] .story-hero {
+  position: relative;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.story[data-mode="static"] .story-captions {
+  position: relative;
+  inset: auto;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 1rem 3rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .story[data-mode="static"] .story-captions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0 1.5rem 4rem;
+  }
+}
+.story[data-mode="static"] .story-captions,
+.story[data-mode="static"] .story-caption {
+  pointer-events: auto !important;
+}
+.story[data-mode="static"] .story-caption {
+  position: relative;
+  inset: auto;
+  opacity: 1 !important;
+  transform: none !important;
+  max-width: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-poster {
+    animation: none;
+  }
+}
+/* Bewegung reduzieren: sofort ruhige Ansicht, auch bevor JavaScript geladen ist */
+@media (prefers-reduced-motion: reduce) {
+  .story {
+    height: auto;
+  }
+  .story .story-stage {
+    position: relative;
+    height: auto;
+    overflow: visible;
+  }
+  .story .story-canvas,
+  .story .story-label,
+  .story .story-dots,
+  .story .story-scrollhint {
+    display: none;
+  }
+  .story .story-hero {
+    position: relative;
+  }
+  .story .story-captions {
+    position: relative;
+    inset: auto;
+    pointer-events: auto;
+    display: grid;
+    gap: 0.75rem;
+    padding: 0 1rem 3rem;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+  .story .story-caption {
+    position: relative;
+    inset: auto;
+    pointer-events: auto;
+    opacity: 1;
+    transform: none;
+    max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) and (min-width: 768px) {
+  .story .story-captions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0 1.5rem 4rem;
+  }
+}
