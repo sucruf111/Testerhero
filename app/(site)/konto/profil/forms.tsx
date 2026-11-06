@@ -1,10 +1,16 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { changePasswordAction, deleteAccountAction, unsubscribeAction, updateProfileAction } from "@/lib/actions/tester";
+import {
+  changePasswordAction,
+  deleteAccountAction,
+  unsubscribeAction,
+  updateAdultPreferenceAction,
+  updateProfileAction,
+} from "@/lib/actions/tester";
 import { AddressFields } from "@/components/site/address-fields";
 import { Button } from "@/components/ui/button";
-import { Field, FormMessage, Input } from "@/components/ui/form";
+import { Checkbox, Field, FormMessage, Input } from "@/components/ui/form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { FormState } from "@/lib/validation";
 
@@ -23,6 +29,33 @@ export function ProfileForm({ values }: { values: Values }) {
       </Field>
       <AddressFields values={v} errors={e} />
       <SubmitButton pendingText="Einen Moment …">Speichern</SubmitButton>
+    </form>
+  );
+}
+
+export function AdultPreferenceForm({ optIn, ageConfirmed }: { optIn: boolean; ageConfirmed: boolean }) {
+  const [state, action] = useActionState<FormState, FormData>(updateAdultPreferenceAction, {});
+  const e = state.fieldErrors ?? {};
+  const checked = state.values?.adultOptIn === "on" || (!state.values && optIn);
+
+  return (
+    <form action={action} className="space-y-3">
+      <FormMessage state={state} />
+      <Checkbox
+        name="adultOptIn"
+        defaultChecked={checked}
+        label="Ich möchte auch Erotikprodukte bekommen."
+        description="Zum Beispiel Gleitgel oder Massageöl. Ohne Haken bekommst du nie so ein Paket."
+      />
+      {!ageConfirmed && (
+        <div>
+          <Checkbox name="adult" label="Ich bin mindestens 18 Jahre alt." />
+          {e.adult && <p className="mt-1.5 text-[13px] text-red-600">{e.adult[0]}</p>}
+        </div>
+      )}
+      <SubmitButton variant="secondary" pendingText="Einen Moment …">
+        Speichern
+      </SubmitButton>
     </form>
   );
 }

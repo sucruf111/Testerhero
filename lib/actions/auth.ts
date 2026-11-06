@@ -37,11 +37,19 @@ function safeNext(value: FormDataEntryValue | null, fallback: string) {
 
 export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const values = formValues(formData, ["interests"]);
+  const checked = (name: string) => formData.get(name) === "on";
   const parsed = registerSchema.safeParse({
     ...values,
-    consent: formData.get("consent") === "on",
+    consent: checked("consent"),
+    adult: checked("adult"),
   });
-  const echo = { ...values, password: "", consent: formData.get("consent") === "on" ? "on" : "" };
+  const echo = {
+    ...values,
+    password: "",
+    consent: checked("consent") ? "on" : "",
+    adult: checked("adult") ? "on" : "",
+    adultOptIn: checked("adultOptIn") ? "on" : "",
+  };
   if (!parsed.success) {
     return { error: "Bitte schau dir die markierten Felder noch mal an.", fieldErrors: fieldErrorsOf(parsed.error), values: echo };
   }
@@ -75,6 +83,8 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
       phone: data.phone,
       birthYear: data.birthYear,
       consentAt: new Date(),
+      ageConfirmedAt: new Date(),
+      adultOptIn: checked("adultOptIn"),
       lastLoginAt: new Date(),
     })
     .returning();

@@ -210,3 +210,37 @@ export async function deleteAccountAction(_prev: FormState, formData: FormData):
   after(() => distribute());
   redirect("/?konto=geloescht");
 }
+
+/* ───────────── Erotikprodukte (freiwillig, ab 18) ───────────── */
+
+export async function updateAdultPreferenceAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const tester = await requireTester();
+  const optIn = formData.get("adultOptIn") === "on";
+  const confirmsAge = formData.get("adult") === "on";
+
+  if (optIn && !tester.ageConfirmedAt && !confirmsAge) {
+    return {
+      fieldErrors: { adult: ["Bitte bestätige, dass du mindestens 18 Jahre alt bist."] },
+      values: { adultOptIn: "on" },
+    };
+  }
+
+  await db
+    .update(schema.testers)
+    .set({
+      adultOptIn: optIn,
+      ...(confirmsAge && !tester.ageConfirmedAt ? { ageConfirmedAt: new Date() } : {}),
+    })
+    .where(eq(schema.testers.id, tester.id));
+
+  // Wer neu zustimmt, kann sofort für freie Plätze ausgelost werden
+  if (optIn) after(() => distribute());
+
+  revalidatePath("/konto", "layout");
+  return {
+    ok: true,
+    message: optIn
+      ? "Gespeichert. Du kannst jetzt auch Erotikprodukte bekommen."
+      : "Gespeichert. Du bekommst keine Erotikprodukte.",
+  };
+}

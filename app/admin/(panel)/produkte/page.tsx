@@ -76,7 +76,10 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
                             <ProductImage src={p.imageUrl} alt="" category={p.category} />
                           </span>
                           <span className="min-w-0">
-                            <span className="block truncate font-semibold hover:text-coral-600">{p.title}</span>
+                            <span className="flex items-center gap-1.5">
+                              <span className="truncate font-semibold hover:text-coral-600">{p.title}</span>
+                              {p.adult && <Badge tone="red">18+</Badge>}
+                            </span>
                             <span className="block text-xs text-muted">{p.category}</span>
                           </span>
                         </Link>

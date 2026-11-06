@@ -78,6 +78,10 @@ export const testers = dbSchema.table(
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     /** Normalisierte Adresse – verhindert, dass ein Haushalt dasselbe Produkt mehrfach bekommt */
     addressKey: text("address_key"),
+    /** Zeitpunkt, an dem der Tester bestätigt hat, mindestens 18 Jahre alt zu sein */
+    ageConfirmedAt: timestamp("age_confirmed_at", { withTimezone: true }),
+    /** Möchte auch Erotikprodukte bekommen (freiwillig, nur mit Altersbestätigung) */
+    adultOptIn: boolean("adult_opt_in").notNull().default(false),
     /** Interne Notiz der Agentur – für Tester unsichtbar */
     adminNote: text("admin_note"),
     ...timestamps,
@@ -122,6 +126,8 @@ export const products = dbSchema.table(
     /** Warenwert in Cent (optional) */
     retailPriceCents: integer("retail_price_cents"),
     slots: integer("slots").notNull().default(10),
+    /** Erotikprodukt: geht nur an Tester ab 18, die das ausdrücklich erlaubt haben */
+    adult: boolean("adult").notNull().default(false),
     applicationDeadline: date("application_deadline", { mode: "string" }),
     status: productStatus("status").notNull().default("draft"),
     notifiedAt: timestamp("notified_at", { withTimezone: true }),

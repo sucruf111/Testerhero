@@ -77,6 +77,8 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
           <Panel title="Profil">
             <dl className="space-y-2 text-sm">
               <Row label="Geburtsjahr" value={tester.birthYear ? `${tester.birthYear} (${new Date().getFullYear() - tester.birthYear} J.)` : "–"} />
+              <Row label="18+ bestätigt" value={tester.ageConfirmedAt ? "Ja" : "Nein"} />
+              <Row label="Erotikprodukte" value={tester.adultOptIn && tester.ageConfirmedAt ? "Ja, erlaubt" : "Nein"} />
               <Row label="Angemeldet seit" value={formatDate(tester.createdAt)} />
               <Row label="Letzter Login" value={formatDateTime(tester.lastLoginAt)} />
               {tester.unsubscribedAt && <Row label="Abgemeldet am" value={formatDate(tester.unsubscribedAt)} />}

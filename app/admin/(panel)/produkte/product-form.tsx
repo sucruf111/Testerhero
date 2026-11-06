@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { ImageUp, Save } from "lucide-react";
 import { saveProductAction } from "@/lib/actions/admin";
 import { ProductImage } from "@/components/product-image";
-import { Alert, Field, Input, Select, Textarea } from "@/components/ui/form";
+import { Alert, Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { CATEGORIES } from "@/lib/constants";
 import type { FormState } from "@/lib/validation";
@@ -23,6 +23,7 @@ export type ProductFormValues = {
   slots?: number | string;
   applicationDeadline?: string | null;
   status?: string;
+  adult?: boolean;
 };
 
 export function ProductForm({ initial = {}, blobEnabled }: { initial?: ProductFormValues; blobEnabled: boolean }) {
@@ -31,6 +32,7 @@ export function ProductForm({ initial = {}, blobEnabled }: { initial?: ProductFo
   const e = state.fieldErrors ?? {};
   const [preview, setPreview] = useState<string | null>(initial.imageUrl ?? null);
   const [category, setCategory] = useState(v.category ?? CATEGORIES[0]);
+  const adultChecked = state.values ? state.values.adult === "on" : Boolean(initial.adult);
 
   return (
     <form action={action} className="grid gap-5 xl:grid-cols-[1fr_18rem]">
@@ -128,6 +130,12 @@ export function ProductForm({ initial = {}, blobEnabled }: { initial?: ProductFo
                 <option value="closed">Beendet</option>
               </Select>
             </Field>
+            <Checkbox
+              name="adult"
+              defaultChecked={adultChecked}
+              label="Erotikprodukt"
+              description="Geht nur an Tester ab 18, die Erotikprodukte ausdrücklich erlaubt haben."
+            />
             <Field label="Wie viele Pakete?" name="slots" error={e.slots}>
               <Input name="slots" type="number" min={1} required defaultValue={String(v.slots ?? 10)} error={e.slots} />
             </Field>

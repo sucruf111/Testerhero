@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/misc";
 import { requireTester } from "@/lib/auth/session";
-import { DeleteAccountForm, PasswordForm, ProfileForm, UnsubscribeBox } from "./forms";
+import { AdultPreferenceForm, DeleteAccountForm, PasswordForm, ProfileForm, UnsubscribeBox } from "./forms";
 
 export const metadata: Metadata = { title: "Profil" };
 
@@ -27,6 +27,13 @@ export default async function ProfilePage() {
           <h2 className="font-display text-lg font-bold">Deine Daten</h2>
           <p className="mt-0.5 mb-5 text-sm text-muted">An diese Adresse schicken wir deine Pakete.</p>
           <ProfileForm values={values} />
+        </Card>
+        <Card>
+          <h2 className="font-display text-lg font-bold">Erotikprodukte</h2>
+          <p className="mt-0.5 mb-4 text-sm text-muted">
+            Freiwillig und nur ab 18. Du kannst das jederzeit wieder ändern.
+          </p>
+          <AdultPreferenceForm optIn={tester.adultOptIn} ageConfirmed={Boolean(tester.ageConfirmedAt)} />
         </Card>
         <Card>
           <h2 className="mb-4 font-display text-lg font-bold">Passwort ändern</h2>

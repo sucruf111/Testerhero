@@ -27,6 +27,10 @@ export default async function TeilnahmebedingungenPage() {
           </li>
           <li>Wer {settings.maxOpenTests === 1 ? "ein Paket" : `${settings.maxOpenTests} Pakete`} noch nicht bewertet hat, wird erst danach wieder ausgelost.</li>
           <li>Niemand bekommt dasselbe Produkt zweimal. Das gilt auch für Personen mit derselben Adresse.</li>
+          <li>
+            Erotikprodukte bekommt nur, wer bestätigt hat, mindestens 18 Jahre alt zu sein, und sie in seinem Konto ausdrücklich erlaubt
+            hat. Diese Erlaubnis kann man jederzeit zurücknehmen.
+          </li>
         </ul>
       </section>
       <section>

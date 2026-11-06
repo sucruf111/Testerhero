@@ -70,7 +70,7 @@ export async function saveProductAction(_prev: FormState, formData: FormData): P
     }
   }
 
-  const record = { ...data, imageUrl, retailPriceCents: retailPrice };
+  const record = { ...data, imageUrl, retailPriceCents: retailPrice, adult: formData.get("adult") === "on" };
   let productId = id;
 
   if (id) {

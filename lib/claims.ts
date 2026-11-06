@@ -30,6 +30,7 @@ export async function getSettings(exec: Executor = db) {
  *
  * Regeln:
  * - nur aktive Tester mit bestätigter E-Mail-Adresse
+ * - Erotikprodukte nur an Tester mit Altersbestätigung (18+) und ausdrücklicher Zustimmung
  * - niemand bekommt dasselbe Produkt zweimal (auch nicht nach Stornierung oder Absage)
  * - pro Haushalt (gleiche Adresse) höchstens einmal dasselbe Produkt
  * - höchstens `maxOpenTests` offene Tests und `maxClaimsPerWindow` Produkte in `claimWindowDays` Tagen
@@ -53,6 +54,7 @@ export async function distribute(onlyProductId?: string) {
         shortDescription: p.shortDescription,
         applicationDeadline: p.applicationDeadline,
         slots: p.slots,
+        adult: p.adult,
         // Bewusst mit festen Tabellennamen: Drizzle lässt sie bei einer einzelnen Tabelle sonst weg
         taken: sql<number>`(select count(*) from testerhero.applications x where x.product_id = "products"."id" and x.status in ('accepted','shipped','received','reviewed'))`.mapWith(
           Number,
@@ -79,6 +81,8 @@ export async function distribute(onlyProductId?: string) {
         from testerhero.testers t
         where t.status = 'active'
           and t.email_verified_at is not null
+          -- Erotikprodukte nur an Tester ab 18, die das ausdrücklich erlaubt haben
+          and (${!product.adult} or (t.adult_opt_in and t.age_confirmed_at is not null))
           and not exists (select 1 from testerhero.applications x where x.tester_id = t.id and x.product_id = ${product.id})
           and (
             t.address_key is null or not exists (

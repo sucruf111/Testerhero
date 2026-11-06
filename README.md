@@ -14,6 +14,7 @@ Die gesamte Oberfläche ist auf Deutsch.
 - Ausgelost wird nur, wer aktiv ist und seine E-Mail-Adresse bestätigt hat.
 - Niemand bekommt dasselbe Produkt zweimal, auch nicht nach einer Stornierung.
 - Pro Haushalt (gleiche Adresse, Schreibweise wie „Str.“ und „Straße“ wird erkannt) geht jedes Produkt nur an eine Person.
+- Mitmachen nur ab 18 (Bestätigung bei der Anmeldung). Erotikprodukte (Häkchen im Admin) gehen nur an Tester, die das bei der Anmeldung oder im Konto ausdrücklich erlaubt haben.
 - Höchstens X Pakete in Y Tagen und höchstens Z offene (noch nicht bewertete) Pakete pro Person. Die Werte stellt die Agentur unter **Einstellungen** ein (Standard: 3 in 30 Tagen, 2 offen).
 - Freie Plätze werden automatisch nachverteilt: bei neuen Anmeldungen, nach Bewertungen, Abmeldungen und Stornierungen, außerdem einmal täglich per Vercel Cron. Die Agentur kann jederzeit auch „Jetzt verteilen“ klicken.
 - Die Verteilung läuft unter einer Datenbank-Sperre. Auch bei gleichzeitigen Aufrufen wird nie mehr vergeben, als Plätze da sind.
@@ -85,7 +86,7 @@ Ohne `RESEND_API_KEY` erscheinen alle E-Mails mit ihren Links im Terminal.
 
 ## Datenmodell
 
-- `testers`: Profil, Lieferadresse, Adress-Schlüssel (für die Haushalts-Regel), Status (`active`, `unsubscribed`, `blocked`)
+- `testers`: Profil, Lieferadresse, Adress-Schlüssel (für die Haushalts-Regel), Status (`active`, `unsubscribed`, `blocked`), Altersbestätigung und Erotik-Zustimmung
 - `products`: Produkt mit Anzahl Paketen, „Verteilen bis“, Status (`draft`, `active`, `closed`)
 - `applications`: ein Paket pro Tester und Produkt: `accepted` (ausgelost) → `shipped` → `received` (ausgepackt) → `reviewed`, dazu `rejected` (storniert) und `withdrawn` (abgelehnt oder abgemeldet)
 - `reviews`: Bewertung je Paket

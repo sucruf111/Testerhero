@@ -52,6 +52,19 @@ export function RegisterForm() {
         {e.consent && <p className="mt-1.5 text-[13px] text-red-600">{e.consent[0]}</p>}
       </div>
 
+      <div className="space-y-3 rounded-xl bg-sand/60 p-4">
+        <div>
+          <Checkbox name="adult" defaultChecked={v.adult === "on"} label="Ich bin mindestens 18 Jahre alt." />
+          {e.adult && <p className="mt-1.5 text-[13px] text-red-600">{e.adult[0]}</p>}
+        </div>
+        <Checkbox
+          name="adultOptIn"
+          defaultChecked={v.adultOptIn === "on"}
+          label="Ich möchte auch Erotikprodukte bekommen (freiwillig)."
+          description="Zum Beispiel Gleitgel oder Massageöl. Ohne Haken bekommst du nie so ein Paket. Du kannst das jederzeit in deinem Konto ändern."
+        />
+      </div>
+
       <SubmitButton size="lg" className="w-full" pendingText="Einen Moment …">
         Konto anlegen
       </SubmitButton>

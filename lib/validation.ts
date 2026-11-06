@@ -69,6 +69,7 @@ export const registerSchema = addressSchema.and(
     email: emailSchema,
     password: passwordSchema,
     consent: z.literal(true, "Bitte setz hier einen Haken, sonst können wir dich nicht anmelden."),
+    adult: z.literal(true, "Mitmachen kannst du erst ab 18 Jahren."),
   }),
 );
 

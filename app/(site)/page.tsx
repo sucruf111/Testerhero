@@ -23,6 +23,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       ? "Erst wenn du dein Paket bewertet hast, kannst du wieder ausgelost werden."
       : `Du kannst höchstens ${settings.maxOpenTests} Pakete gleichzeitig offen haben. Danach erst bewerten.`,
     "Du bekommst nie zweimal dasselbe Produkt. Das gilt auch für alle, die mit dir zusammenwohnen.",
+    "Erotikprodukte bekommst du nur, wenn du sie ausdrücklich erlaubst. Mitmachen kannst du ab 18.",
     "Was im Paket ist, darfst du behalten. Du musst nichts zurückschicken.",
   ];
 
@@ -43,6 +44,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     {
       q: "Was ist in den Paketen?",
       a: "Neue Produkte aus Haushalt, Garten, Gesundheit, Pflege, Sport und mehr. Der Wert liegt meist zwischen 5 und 50 Euro. Was du bekommst, entscheidet das Los.",
+    },
+    {
+      q: "Bekomme ich auch Erotikprodukte?",
+      a: "Nur wenn du das willst. Bei der Anmeldung oder später in deinem Konto kannst du ankreuzen, dass du auch Erotikprodukte wie Gleitgel oder Massageöl bekommen möchtest. Ohne diesen Haken bekommst du nie so ein Paket.",
     },
     {
       q: "Wie groß sind meine Chancen?",
