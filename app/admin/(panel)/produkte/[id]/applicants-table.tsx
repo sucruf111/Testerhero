@@ -77,7 +77,7 @@ export function ApplicantsTable({ apps }: { apps: Apps }) {
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {app.history.tests > 0 ? (
                         <Badge tone="violet" dot={false}>
-                          {app.history.tests} Tests · {app.history.reviews} bewertet
+                          {app.history.tests} {app.history.tests === 1 ? "Test" : "Tests"} · {app.history.reviews} bewertet
                         </Badge>
                       ) : (
                         <Badge tone="slate" dot={false}>
@@ -154,7 +154,7 @@ function RowActions({ app, disabled }: { app: Apps[number]; disabled: boolean })
                 <option key={c}>{c}</option>
               ))}
             </select>
-            <input name="trackingNumber" placeholder="Sendungsnummer" aria-label="Sendungsnummer" className={cn(compactInputClass, "w-36")} />
+            <input name="trackingNumber" placeholder="Sendungsnr." aria-label="Sendungsnummer" className={cn(compactInputClass, "w-36")} />
             <SubmitButton size="sm" variant="dark" disabled={disabled}>
               <Truck /> Versendet
             </SubmitButton>

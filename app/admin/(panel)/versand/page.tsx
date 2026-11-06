@@ -122,7 +122,7 @@ export default async function ShippingPage() {
                               <option key={c}>{c}</option>
                             ))}
                           </select>
-                          <input name="trackingNumber" placeholder="Sendungsnummer" aria-label="Sendungsnummer" className={cn(compactInputClass, "w-40")} />
+                          <input name="trackingNumber" placeholder="Sendungsnr." aria-label="Sendungsnummer" className={cn(compactInputClass, "w-40")} />
                           <SubmitButton size="sm">
                             <Truck /> Versendet
                           </SubmitButton>
