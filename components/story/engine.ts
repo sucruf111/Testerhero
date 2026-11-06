@@ -287,6 +287,10 @@ export function createStory(opts: Options): StoryEngine {
         const scale = 1 / Math.max(size.x, size.y, size.z);
         model.position.copy(center).multiplyScalar(-scale);
         model.scale.setScalar(scale);
+        // Vorderseite nach vorn drehen (um die eigene Mitte)
+        const front = new Group();
+        front.rotation.y = p.yaw ?? 0;
+        front.add(model);
         model.traverse((o) => {
           const m = (o as Mesh).material as MeshStandardMaterial | undefined;
           if (!m) return;
@@ -300,7 +304,7 @@ export function createStory(opts: Options): StoryEngine {
             m.depthWrite = false;
           }
         });
-        obj.add(model);
+        obj.add(front);
       })
       .catch((error) => console.warn("Modell nicht geladen:", p.id, error));
     return { holder, obj };
@@ -536,10 +540,11 @@ export function createStory(opts: Options): StoryEngine {
         it.holder.visible = !(drop >= 1 && rise === 0);
       }
       it.holder.scale.setScalar(Math.max(0.0001, s));
-      // Produkte schauen in Schrägansicht zur Kamera und schwingen nur leicht: so erkennt man sie sofort
+      // Die Vorderseite der Verpackung zeigt zur Kamera, die Produkte schwingen nur leicht:
+      // so bleibt das Etikett lesbar und man erkennt das Produkt sofort
       const revealed = isWinner && rise > 0;
-      it.obj.rotation.y = -0.55 + Math.sin(t * (revealed ? 0.6 : 0.7) + i * 1.3) * (revealed ? 0.5 : 0.7);
-      it.obj.rotation.x = 0.12 + Math.sin(t * 0.8 + i) * 0.08;
+      it.obj.rotation.y = -0.25 + Math.sin(t * (revealed ? 0.6 : 0.7) + i * 1.3) * (revealed ? 0.35 : 0.45);
+      it.obj.rotation.x = 0.06 + Math.sin(t * 0.8 + i) * 0.05;
     });
 
     // ── Sterne ──

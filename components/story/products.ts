@@ -1,29 +1,33 @@
 /**
- * Beispielprodukte für die Startseite: echte 3D-Modelle (glTF), optimiert in /public/models.
- * Quellen: Poly Haven (CC0), Khronos glTF Sample Assets (CC0) und ein Sneaker von Shopify (CC BY 4.0).
- * Es sind Beispiele, keine echten Angebote.
+ * Beispielprodukte für die Startseite: echte Produkte aus dem Sortiment, als 3D-Modelle
+ * (aus Produktfotos erzeugt, optimiert in /public/models). Bewusst ohne Markennamen im Text,
+ * die Verpackung sorgt für den Wiedererkennungswert.
  */
 export type ExampleProduct = {
   id: string;
   name: string;
   price: string;
+  /** Drehung (Radiant), damit die Vorderseite der Verpackung zur Kamera zeigt */
+  yaw?: number;
 };
 
 export const EXAMPLE_PRODUCTS: ExampleProduct[] = [
-  { id: "sneaker", name: "Sneaker", price: "44,99 €" },
-  { id: "wecker", name: "Wecker", price: "19,99 €" },
-  { id: "badeente", name: "Badeente", price: "6,99 €" },
-  { id: "sukkulente", name: "Sukkulente im Topf", price: "14,99 €" },
-  { id: "ukulele", name: "Ukulele", price: "39,99 €" },
-  { id: "thermoskanne", name: "Thermoskanne", price: "19,99 €" },
-  { id: "trinkflasche", name: "Trinkflasche", price: "17,99 €" },
-  { id: "teetasse", name: "Teetasse", price: "12,99 €" },
-  { id: "vase", name: "Keramikvase", price: "19,99 €" },
-  { id: "fernglas", name: "Fernglas", price: "34,99 €" },
-  { id: "kissen", name: "Dekokissen", price: "24,99 €" },
-  { id: "korb", name: "Aufbewahrungskorb", price: "22,99 €" },
-  { id: "radio", name: "Retro-Radio", price: "49,99 €" },
-  { id: "giesskanne", name: "Gießkanne", price: "16,99 €" },
+  { id: "gleitgel", name: "Gleitgel, 100 ml", price: "12,74 €" },
+  { id: "massagegel", name: "Massage-Gel, 200 ml", price: "9,99 €" },
+  { id: "wasserenthaerter", name: "Wasserenthärter-Tabs", price: "7,79 €" },
+  { id: "maschinenreiniger", name: "Waschmaschinen-Reiniger", price: "2,35 €" },
+  { id: "rohrreiniger", name: "Rohrreiniger, 3 × 1 l", price: "11,25 €" },
+  { id: "wespenspray", name: "Wespen-Spray", price: "12,56 €", yaw: 1.8 },
+  { id: "schaedlingsspray", name: "Schädlingsspray für Pflanzen", price: "8,49 €" },
+  { id: "parfum", name: "Eau de Parfum, 75 ml", price: "16,95 €" },
+  { id: "proteinpulver", name: "Proteinpulver, 500 g", price: "16,69 €" },
+  { id: "diaetshake", name: "Diät-Shake, 2er-Pack", price: "15,50 €" },
+  { id: "rasensamen", name: "Rasensamen, 1 kg", price: "17,95 €" },
+  { id: "kollagen", name: "Kollagen-Pulver", price: "23,71 €" },
+  { id: "vitamin-b12", name: "Vitamin-B12-Spray", price: "12,97 €", yaw: 1.45 },
+  { id: "elektrolyte", name: "Elektrolyt-Drink", price: "24,57 €" },
+  { id: "pickleball", name: "Pickleball-Schläger", price: "49,29 €" },
+  { id: "schlagschnur", name: "Schlagschnur mit Kreide", price: "24,99 €" },
 ];
 
 export const modelUrl = (p: ExampleProduct) => `/models/${p.id}.glb`;

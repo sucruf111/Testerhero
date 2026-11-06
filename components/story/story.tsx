@@ -48,6 +48,7 @@ export function Story({ loggedIn }: { loggedIn: boolean }) {
   const captionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const labelRef = useRef<HTMLDivElement>(null);
+  const noteRef = useRef<HTMLDivElement>(null);
   const labelNameRef = useRef<HTMLSpanElement>(null);
   const labelPriceRef = useRef<HTMLSpanElement>(null);
 
@@ -93,6 +94,8 @@ export function Story({ loggedIn }: { loggedIn: boolean }) {
         hero.style.pointerEvents = out > 0.5 ? "none" : "auto";
       }
       if (hintRef.current) hintRef.current.style.opacity = String(1 - seg(p, 0, 0.04));
+      // auf dem Handy liegen die Sterne oben rechts: dort steht dann das Preisschild mit „Beispielprodukt“
+      if (noteRef.current) noteRef.current.style.opacity = String(seg(p, 0.13, 0.17) * (mobile ? 1 - seg(p, 0.82, 0.85) : 1));
 
       let activeStep = -1;
       WINDOWS.forEach(([a, b], i) => {
@@ -245,10 +248,18 @@ export function Story({ loggedIn }: { loggedIn: boolean }) {
         {/* Preisschild am Beispielprodukt */}
         <div ref={labelRef} className="story-label pointer-events-none absolute top-0 left-0 z-10" aria-hidden>
           <div className="flex items-center gap-2 rounded-full bg-white/95 py-1.5 pr-3.5 pl-1.5 text-sm shadow-lift ring-1 ring-line whitespace-nowrap">
-            <span className="rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-muted">Beispiel</span>
+            <span className="rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-muted">Beispielprodukt</span>
             <span ref={labelNameRef} className="font-semibold" />
             <span ref={labelPriceRef} className="font-semibold text-coral-600" />
           </div>
+        </div>
+
+        {/* Hinweis: Es sind Beispiele aus dem Sortiment */}
+        <div
+          ref={noteRef}
+          className="story-note pointer-events-none absolute top-[76px] right-4 z-10 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-ink-soft shadow-soft ring-1 ring-line backdrop-blur sm:right-6"
+        >
+          Beispielprodukte
         </div>
 
         {/* Die vier Schritte */}

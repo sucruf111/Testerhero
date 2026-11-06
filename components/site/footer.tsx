@@ -27,11 +27,7 @@ export function SiteFooter() {
         </nav>
       </div>
       <p className="mx-auto max-w-6xl px-4 pb-6 text-[11px] text-muted/80 sm:px-6">
-        Beispielprodukte als 3D-Modelle von Poly Haven und Khronos (CC0) sowie Sneaker von Shopify (
-        <a href="https://creativecommons.org/licenses/by/4.0/deed.de" className="underline hover:text-ink" rel="noopener" target="_blank">
-          CC BY 4.0
-        </a>
-        ).
+        Die Produkte auf der Startseite sind Beispiele. Marken und Logos gehören ihren jeweiligen Inhabern.
       </p>
     </footer>
   );
