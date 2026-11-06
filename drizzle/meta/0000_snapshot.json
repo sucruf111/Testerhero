@@ -1,12 +1,12 @@
 {
-  "id": "c10a8e76-7422-44c8-ab06-0a97c14f2b45",
+  "id": "27445ceb-ca08-4f43-ac21-79bb570383f0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.applications": {
+    "testerhero.applications": {
       "name": "applications",
-      "schema": "",
+      "schema": "testerhero",
       "columns": {
         "id": {
           "name": "id",
@@ -30,7 +30,7 @@
         "status": {
           "name": "status",
           "type": "application_status",
-          "typeSchema": "public",
+          "typeSchema": "testerhero",
           "primaryKey": false,
           "notNull": true,
           "default": "'pending'"
@@ -144,6 +144,7 @@
           "name": "applications_product_id_products_id_fk",
           "tableFrom": "applications",
           "tableTo": "products",
+          "schemaTo": "testerhero",
           "columnsFrom": [
             "product_id"
           ],
@@ -157,6 +158,7 @@
           "name": "applications_tester_id_testers_id_fk",
           "tableFrom": "applications",
           "tableTo": "testers",
+          "schemaTo": "testerhero",
           "columnsFrom": [
             "tester_id"
           ],
@@ -173,9 +175,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.products": {
+    "testerhero.products": {
       "name": "products",
-      "schema": "",
+      "schema": "testerhero",
       "columns": {
         "id": {
           "name": "id",
@@ -260,7 +262,7 @@
         "status": {
           "name": "status",
           "type": "product_status",
-          "typeSchema": "public",
+          "typeSchema": "testerhero",
           "primaryKey": false,
           "notNull": true,
           "default": "'draft'"
@@ -325,9 +327,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.reviews": {
+    "testerhero.reviews": {
       "name": "reviews",
-      "schema": "",
+      "schema": "testerhero",
       "columns": {
         "id": {
           "name": "id",
@@ -443,6 +445,7 @@
           "name": "reviews_application_id_applications_id_fk",
           "tableFrom": "reviews",
           "tableTo": "applications",
+          "schemaTo": "testerhero",
           "columnsFrom": [
             "application_id"
           ],
@@ -456,6 +459,7 @@
           "name": "reviews_product_id_products_id_fk",
           "tableFrom": "reviews",
           "tableTo": "products",
+          "schemaTo": "testerhero",
           "columnsFrom": [
             "product_id"
           ],
@@ -469,6 +473,7 @@
           "name": "reviews_tester_id_testers_id_fk",
           "tableFrom": "reviews",
           "tableTo": "testers",
+          "schemaTo": "testerhero",
           "columnsFrom": [
             "tester_id"
           ],
@@ -485,9 +490,57 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.testers": {
+    "testerhero.settings": {
+      "name": "settings",
+      "schema": "testerhero",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "max_claims_per_window": {
+          "name": "max_claims_per_window",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        },
+        "claim_window_days": {
+          "name": "claim_window_days",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 30
+        },
+        "max_open_tests": {
+          "name": "max_open_tests",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 2
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "testerhero.testers": {
       "name": "testers",
-      "schema": "",
+      "schema": "testerhero",
       "columns": {
         "id": {
           "name": "id",
@@ -580,7 +633,7 @@
         "status": {
           "name": "status",
           "type": "tester_status",
-          "typeSchema": "public",
+          "typeSchema": "testerhero",
           "primaryKey": false,
           "notNull": true,
           "default": "'active'"
@@ -607,6 +660,12 @@
         "last_login_at": {
           "name": "last_login_at",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address_key": {
+          "name": "address_key",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -661,6 +720,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "testers_address_key_idx": {
+          "name": "testers_address_key_idx",
+          "columns": [
+            {
+              "expression": "address_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -672,9 +746,9 @@
     }
   },
   "enums": {
-    "public.application_status": {
+    "testerhero.application_status": {
       "name": "application_status",
-      "schema": "public",
+      "schema": "testerhero",
       "values": [
         "pending",
         "accepted",
@@ -685,18 +759,18 @@
         "withdrawn"
       ]
     },
-    "public.product_status": {
+    "testerhero.product_status": {
       "name": "product_status",
-      "schema": "public",
+      "schema": "testerhero",
       "values": [
         "draft",
         "active",
         "closed"
       ]
     },
-    "public.tester_status": {
+    "testerhero.tester_status": {
       "name": "tester_status",
-      "schema": "public",
+      "schema": "testerhero",
       "values": [
         "active",
         "unsubscribed",
@@ -704,7 +778,9 @@
       ]
     }
   },
-  "schemas": {},
+  "schemas": {
+    "testerhero": "testerhero"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},

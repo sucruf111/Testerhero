@@ -56,8 +56,8 @@ const productAggregates = {
   pendingCount: sql<number>`count(distinct ${a.id}) filter (where ${a.status} = 'pending')`.mapWith(Number),
   toShipCount: sql<number>`count(distinct ${a.id}) filter (where ${a.status} = 'accepted')`.mapWith(Number),
   // feste Tabellennamen, damit die Unterabfrage eindeutig auf das Produkt zeigt
-  reviewCount: sql<number>`(select count(*) from reviews rv where rv.product_id = "products"."id")`.mapWith(Number),
-  avgRating: sql<number | null>`(select avg(rv.rating) from reviews rv where rv.product_id = "products"."id")`.mapWith((v) =>
+  reviewCount: sql<number>`(select count(*) from testerhero.reviews rv where rv.product_id = "products"."id")`.mapWith(Number),
+  avgRating: sql<number | null>`(select avg(rv.rating) from testerhero.reviews rv where rv.product_id = "products"."id")`.mapWith((v) =>
     v == null ? null : Number(v),
   ),
 };

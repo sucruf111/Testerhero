@@ -54,7 +54,7 @@ export async function distribute(onlyProductId?: string) {
         applicationDeadline: p.applicationDeadline,
         slots: p.slots,
         // Bewusst mit festen Tabellennamen: Drizzle lässt sie bei einer einzelnen Tabelle sonst weg
-        taken: sql<number>`(select count(*) from applications x where x.product_id = "products"."id" and x.status in ('accepted','shipped','received','reviewed'))`.mapWith(
+        taken: sql<number>`(select count(*) from testerhero.applications x where x.product_id = "products"."id" and x.status in ('accepted','shipped','received','reviewed'))`.mapWith(
           Number,
         ),
       })
@@ -76,21 +76,21 @@ export async function distribute(onlyProductId?: string) {
 
       const candidates = (await tx.execute(sql`
         select t.id, t.email, t.first_name, t.address_key
-        from testers t
+        from testerhero.testers t
         where t.status = 'active'
           and t.email_verified_at is not null
-          and not exists (select 1 from applications x where x.tester_id = t.id and x.product_id = ${product.id})
+          and not exists (select 1 from testerhero.applications x where x.tester_id = t.id and x.product_id = ${product.id})
           and (
             t.address_key is null or not exists (
-              select 1 from applications x join testers t2 on t2.id = x.tester_id
+              select 1 from testerhero.applications x join testerhero.testers t2 on t2.id = x.tester_id
               where x.product_id = ${product.id}
                 and x.status in ('accepted','shipped','received','reviewed')
                 and t2.address_key = t.address_key
             )
           )
-          and (select count(*) from applications x where x.tester_id = t.id
+          and (select count(*) from testerhero.applications x where x.tester_id = t.id
                  and x.status in ('accepted','shipped','received')) < ${settings.maxOpenTests}
-          and (select count(*) from applications x where x.tester_id = t.id
+          and (select count(*) from testerhero.applications x where x.tester_id = t.id
                  and x.status in ('accepted','shipped','received','reviewed')
                  and x.decided_at >= ${since.toISOString()}) < ${settings.maxClaimsPerWindow}
         order by random()
@@ -156,7 +156,7 @@ export async function getUnfilledSlots() {
   const p = schema.products;
   const [row] = await db
     .select({
-      unfilled: sql<number>`coalesce(sum(greatest("products"."slots" - (select count(*) from applications x where x.product_id = "products"."id" and x.status in ('accepted','shipped','received','reviewed')), 0)), 0)`.mapWith(
+      unfilled: sql<number>`coalesce(sum(greatest("products"."slots" - (select count(*) from testerhero.applications x where x.product_id = "products"."id" and x.status in ('accepted','shipped','received','reviewed')), 0)), 0)`.mapWith(
         Number,
       ),
     })

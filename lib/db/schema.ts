@@ -4,8 +4,7 @@ import {
   date,
   index,
   integer,
-  pgEnum,
-  pgTable,
+  pgSchema,
   smallint,
   text,
   timestamp,
@@ -13,12 +12,18 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+/**
+ * Alle Tabellen liegen im eigenen Schema „testerhero“.
+ * So kommt die App nicht mit anderen Tabellen in derselben Datenbank in Konflikt.
+ */
+export const dbSchema = pgSchema("testerhero");
+
 /* ───────────── Enums ───────────── */
 
 /** active = nimmt teil · unsubscribed = hat sich abgemeldet · blocked = von der Agentur gesperrt */
-export const testerStatus = pgEnum("tester_status", ["active", "unsubscribed", "blocked"]);
+export const testerStatus = dbSchema.enum("tester_status", ["active", "unsubscribed", "blocked"]);
 
-export const productStatus = pgEnum("product_status", ["draft", "active", "closed"]);
+export const productStatus = dbSchema.enum("product_status", ["draft", "active", "closed"]);
 
 /**
  * Ablauf eines Pakets (Überraschungsbox):
@@ -26,7 +31,7 @@ export const productStatus = pgEnum("product_status", ["draft", "active", "close
  * Abzweigungen: rejected (von der Agentur storniert) · withdrawn (vom Tester abgelehnt oder abgemeldet)
  * pending wird aktuell nicht mehr verwendet.
  */
-export const applicationStatus = pgEnum("application_status", [
+export const applicationStatus = dbSchema.enum("application_status", [
   "pending",
   "accepted",
   "shipped",
@@ -46,7 +51,7 @@ const timestamps = {
 
 /* ───────────── Tester ───────────── */
 
-export const testers = pgTable(
+export const testers = dbSchema.table(
   "testers",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -86,7 +91,7 @@ export const testers = pgTable(
 
 /* ───────────── Einstellungen (eine Zeile) ───────────── */
 
-export const settings = pgTable("settings", {
+export const settings = dbSchema.table("settings", {
   id: smallint("id").primaryKey().default(1),
   /** Wie viele Produkte eine Person innerhalb von `claimWindowDays` bekommen darf */
   maxClaimsPerWindow: smallint("max_claims_per_window").notNull().default(3),
@@ -101,7 +106,7 @@ export const settings = pgTable("settings", {
 
 /* ───────────── Produkte ───────────── */
 
-export const products = pgTable(
+export const products = dbSchema.table(
   "products",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -127,7 +132,7 @@ export const products = pgTable(
 
 /* ───────────── Bewerbungen ───────────── */
 
-export const applications = pgTable(
+export const applications = dbSchema.table(
   "applications",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -155,7 +160,7 @@ export const applications = pgTable(
 
 /* ───────────── Bewertungen ───────────── */
 
-export const reviews = pgTable(
+export const reviews = dbSchema.table(
   "reviews",
   {
     id: uuid("id").primaryKey().defaultRandom(),

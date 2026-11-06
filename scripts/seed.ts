@@ -168,8 +168,8 @@ async function main() {
   ]);
 
   // Adress-Schlüssel wie in der App berechnen
-  await client`update testers set address_key = country || '|' || trim(postal_code) || '|' || regexp_replace(regexp_replace(lower(street), 'stra(ss|ß)e', 'str', 'g'), '[^a-z0-9äöüß]', '', 'g')`;
-  await client`insert into settings (id) values (1) on conflict do nothing`;
+  await client`update testerhero.testers set address_key = country || '|' || trim(postal_code) || '|' || regexp_replace(regexp_replace(lower(street), 'stra(ss|ß)e', 'str', 'g'), '[^a-z0-9äöüß]', '', 'g')`;
+  await client`insert into testerhero.settings (id) values (1) on conflict do nothing`;
 
   console.log(`✅ Demo-Daten angelegt: ${products.length} Produkte, ${testers.length} Tester, ${apps.length} Pakete.`);
   console.log("   Demo-Login Tester: lena.mueller@example.com / tester123");
