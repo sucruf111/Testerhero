@@ -6,8 +6,8 @@ import { getCurrentTester } from "@/lib/auth/session";
 import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
-  title: "Kostenlos mitmachen",
-  description: "Melde dich kostenlos bei TesterHero an und bekomm Überraschungspakete zum Testen.",
+  title: "100 % kostenlos mitmachen",
+  description: "Melde dich kostenlos bei TesterHero an, hinterlege deine Adresse und bekomm Überraschungspakete zum Testen und Behalten.",
 };
 
 export default async function RegisterPage() {
@@ -15,8 +15,8 @@ export default async function RegisterPage() {
   return (
     <AuthShell
       wide
-      title="Kostenlos mitmachen"
-      subtitle="Deine Adresse brauchen wir nur, um dir die Pakete zu schicken."
+      title="100 % kostenlos mitmachen"
+      subtitle="Kein Abo, keine Zahlungsdaten. Deine Adresse brauchen wir nur, um dir die Pakete zu schicken."
       footer={
         <>
           Schon angemeldet?{" "}

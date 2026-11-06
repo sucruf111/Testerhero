@@ -1,45 +1,78 @@
 import { Check } from "lucide-react";
+import { RoundPanel } from "@/components/fomo/round-panel";
+import { StickyCta } from "@/components/fomo/sticky-cta";
 import { Story } from "@/components/story/story";
 import { LinkButton } from "@/components/ui/button";
 import { Alert } from "@/components/ui/form";
 import { getCurrentTester } from "@/lib/auth/session";
 import { getSettings } from "@/lib/claims";
+import { getPublicStats } from "@/lib/public-stats";
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const [tester, settings, params] = await Promise.all([getCurrentTester(), getSettings(), searchParams]);
+  const [tester, settings, stats, params] = await Promise.all([
+    getCurrentTester(),
+    getSettings(),
+    getPublicStats(),
+    searchParams,
+  ]);
 
   const rules = [
-    "Die Pakete werden unter allen angemeldeten Testern ausgelost.",
+    "Die Pakete werden unter allen angemeldeten Testern mit bestätigter E-Mail-Adresse ausgelost.",
     `Du bekommst höchstens ${settings.maxClaimsPerWindow} Pakete in ${settings.claimWindowDays} Tagen.`,
     settings.maxOpenTests === 1
       ? "Erst wenn du dein Paket bewertet hast, kannst du wieder ausgelost werden."
       : `Du kannst höchstens ${settings.maxOpenTests} Pakete gleichzeitig offen haben. Danach erst bewerten.`,
     "Du bekommst nie zweimal dasselbe Produkt. Das gilt auch für alle, die mit dir zusammenwohnen.",
-    "Was im Paket ist, darfst du behalten.",
+    "Was im Paket ist, darfst du behalten. Du musst nichts zurückschicken.",
   ];
 
   const faqs = [
-    { q: "Kostet mich das etwas?", a: "Nein. Die Anmeldung, die Produkte und der Versand sind kostenlos." },
-    { q: "Darf ich die Produkte behalten?", a: "Ja. Was in deinem Paket ist, gehört dir." },
     {
-      q: "Was ist in den Paketen?",
-      a: "Neue Produkte aus allen möglichen Bereichen, zum Beispiel Küche, Pflege, Technik oder Sport. Was du bekommst, entscheidet der Zufall.",
+      q: "Ist das wirklich kostenlos?",
+      a: "Ja, zu 100 %. Du zahlst nichts für das Produkt und nichts für den Versand. Es gibt kein Abo, und wir fragen nie nach Bank- oder Kartendaten.",
     },
     {
-      q: "Wie oft bekomme ich ein Paket?",
-      a: `Das hängt davon ab, wie viele Produkte es gerade gibt und wie viele mitmachen. Mehr als ${settings.maxClaimsPerWindow} Pakete in ${settings.claimWindowDays} Tagen bekommt niemand, damit alle eine Chance haben.`,
+      q: "Warum verschenkt ihr Produkte?",
+      a: "Wir arbeiten für Hersteller und Händler, die wissen wollen, wie ihre Produkte im Alltag ankommen. Sie stellen die Produkte zur Verfügung und bekommen dafür ehrliche Rückmeldungen von echten Nutzern.",
+    },
+    {
+      q: "Wie läuft das ab?",
+      a: "Kostenlos anmelden, E-Mail-Adresse bestätigen und Lieferadresse hinterlegen. Wirst du ausgelost, kommt ein Paket zu dir. Du probierst das Produkt aus und schreibst uns eine kurze Bewertung.",
+    },
+    { q: "Darf ich die Produkte behalten?", a: "Ja. Was in deinem Paket ist, gehört dir. Du musst nichts zurückschicken." },
+    {
+      q: "Was ist in den Paketen?",
+      a: "Neue Produkte aus Haushalt, Garten, Gesundheit, Pflege, Sport und mehr. Der Wert liegt meist zwischen 5 und 50 Euro. Was du bekommst, entscheidet das Los.",
+    },
+    {
+      q: "Wie groß sind meine Chancen?",
+      a: `Das hängt davon ab, wie viele Produkte es gerade gibt und wie viele mitmachen. Pro Produkt gibt es nur eine begrenzte Zahl an Plätzen. Mehr als ${settings.maxClaimsPerWindow} Pakete in ${settings.claimWindowDays} Tagen bekommt niemand, damit alle eine Chance haben.`,
+    },
+    {
+      q: "Muss ich eine gute Bewertung schreiben?",
+      a: "Nein. Wir wollen deine ehrliche Meinung. Kritik hilft den Herstellern oft mehr als Lob, und sie hat keinen Einfluss darauf, ob du wieder ausgelost wirst.",
     },
     {
       q: "Muss ich bei Amazon eine Bewertung schreiben?",
       a: "Nein. Du schreibst deine Bewertung nur hier bei uns. Sie geht an den Hersteller und wird nicht veröffentlicht.",
     },
     { q: "Bis wann muss ich bewerten?", a: "Am besten innerhalb von zwei Wochen, nachdem das Paket bei dir angekommen ist." },
-    { q: "Was macht ihr mit meiner Adresse?", a: "Wir brauchen sie nur für den Versand. Für Werbung geben wir sie nicht weiter." },
+    {
+      q: "Was macht ihr mit meiner Adresse?",
+      a: "Wir nutzen sie nur, um dir Pakete zu schicken. Wir verkaufen sie nicht und geben sie nicht für Werbung weiter.",
+    },
     {
       q: "Wie melde ich mich wieder ab?",
       a: "In jeder E-Mail von uns ist ein Link zum Abmelden. Du kannst dich auch in deinem Konto abmelden oder das Konto ganz löschen.",
     },
   ];
+
+  // Nur ehrliche Aussagen: Die Fragen gibt es auch als strukturierte Daten für Suchmaschinen
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
 
   return (
     <>
@@ -49,7 +82,14 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       )}
 
-      <Story loggedIn={Boolean(tester)} />
+      <Story loggedIn={Boolean(tester)} freeSlots={stats.freeSlots} />
+
+      <RoundPanel
+        stats={stats}
+        maxClaims={settings.maxClaimsPerWindow}
+        windowDays={settings.claimWindowDays}
+        loggedIn={Boolean(tester)}
+      />
 
       {/* Regeln + Fragen */}
       <section id="fragen" className="mx-auto mt-14 grid max-w-6xl scroll-mt-20 gap-8 px-4 sm:px-6 lg:grid-cols-[22rem_1fr]">
@@ -65,7 +105,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </ul>
           {!tester && (
             <LinkButton href="/registrieren" className="mt-6 w-full">
-              Kostenlos mitmachen
+              100 % kostenlos mitmachen
             </LinkButton>
           )}
         </div>
@@ -85,6 +125,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </div>
         </div>
       </section>
+
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
+      {!tester && <StickyCta freeSlots={stats.freeSlots} />}
     </>
   );
 }

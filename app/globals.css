@@ -115,10 +115,10 @@
   height: 100svh;
   overflow: hidden;
   background:
-    radial-gradient(60% 50% at 75% 40%, rgb(255 204 184 / 0.75), transparent 70%),
-    radial-gradient(50% 45% at 20% 70%, rgb(225 220 255 / 0.8), transparent 70%),
-    radial-gradient(45% 40% at 60% 90%, rgb(255 230 163 / 0.6), transparent 70%),
-    #fbf8f4;
+    radial-gradient(60% 50% at 75% 40%, rgb(246 196 178 / 0.8), transparent 70%),
+    radial-gradient(50% 45% at 20% 70%, rgb(213 208 241 / 0.85), transparent 70%),
+    radial-gradient(45% 40% at 60% 90%, rgb(247 220 168 / 0.65), transparent 70%),
+    #f3eae0;
 }
 .story-canvas {
   position: absolute;

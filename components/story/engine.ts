@@ -1,10 +1,9 @@
 import {
   AdditiveBlending,
-  BufferAttribute,
   Box3,
-  BufferGeometry,
   Color,
   DirectionalLight,
+  Fog,
   CylinderGeometry,
   DoubleSide,
   ExtrudeGeometry,
@@ -17,7 +16,6 @@ import {
   PerspectiveCamera,
   PlaneGeometry,
   PMREMGenerator,
-  Points,
   Scene,
   ShaderMaterial,
   Shape,
@@ -31,7 +29,8 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { modelUrl, type ExampleProduct } from "./products";
-import { backgroundShader, beamShader, confettiShader, roadShader, shadowShader } from "./shaders";
+import { createConfetti } from "./confetti";
+import { backgroundShader, beamShader, roadShader, shadowShader } from "./shaders";
 
 export type FrameInfo = {
   progress: number;
@@ -102,7 +101,7 @@ export function createStory(opts: Options): StoryEngine {
   renderer.setPixelRatio(dpr);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = NeutralToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 0.94;
 
   const scene = new Scene();
   let disposed = false;
@@ -112,10 +111,13 @@ export function createStory(opts: Options): StoryEngine {
   const pmrem = new PMREMGenerator(renderer);
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = envTexture;
+  scene.environmentIntensity = 0.85;
+  // leichter Luftschleier in Hintergrundfarbe: bettet Box und Produkte weich in die Bühne ein
+  scene.fog = new Fog("#efe2d6", 10, 26);
   pmrem.dispose();
 
   // weiches Führungslicht von oben rechts, damit die Produkte Form bekommen
-  const keyLight = new DirectionalLight("#fff6ec", 1.1);
+  const keyLight = new DirectionalLight("#fff3e6", 0.6);
   keyLight.position.set(3, 5, 4);
   scene.add(keyLight);
 
@@ -127,7 +129,7 @@ export function createStory(opts: Options): StoryEngine {
       metalness: o.metal ?? 0,
       emissive: o.emissive ? new Color(o.emissive) : new Color(0x000000),
       emissiveIntensity: o.glow ?? 0,
-      envMapIntensity: 0.9,
+      envMapIntensity: 0.8,
     });
     materials.push(m);
     return m;
@@ -147,9 +149,10 @@ export function createStory(opts: Options): StoryEngine {
   scene.add(bg);
 
   /* ───────────── Die Box ───────────── */
-  const coral = mat("#ff5a36", { rough: 0.32 });
-  const coralDark = mat("#f0471f", { rough: 0.32 });
-  const ribbon = mat("#fff7f1", { rough: 0.45 });
+  const coral = mat("#ec6a4e", { rough: 0.6 });
+  const coralDark = mat("#e0604a", { rough: 0.6 });
+  // Satinband in warmem Gold statt Weiß: hebt sich vom hellen Hintergrund ab, ohne zu blenden
+  const ribbon = mat("#e9b65a", { rough: 0.38, metal: 0.25 });
 
   const box = new Group();
   scene.add(box);
@@ -161,7 +164,7 @@ export function createStory(opts: Options): StoryEngine {
   box.add(ribbonA, ribbonB);
 
   // leuchtende Öffnung, sichtbar wenn der Deckel ab ist
-  const glowMat = new MeshStandardMaterial({ color: "#ffd66b", emissive: new Color("#ffcf5a"), emissiveIntensity: 0, roughness: 1 });
+  const glowMat = new MeshStandardMaterial({ color: "#f6d89a", emissive: new Color("#f4cf86"), emissiveIntensity: 0, roughness: 1 });
   materials.push(glowMat);
   const opening = new Mesh(new PlaneGeometry(1.32, 1.32), glowMat);
   opening.rotation.x = -Math.PI / 2;
@@ -174,7 +177,7 @@ export function createStory(opts: Options): StoryEngine {
   const lidRibbonB = new Mesh(new RoundedBoxGeometry(0.24, 0.34, 1.67, 2, 0.02), ribbon);
   const bow = new Mesh(
     new ExtrudeGeometry(starShape(0.42, 0.19), { depth: 0.12, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.035, bevelSegments: 3 }),
-    mat("#ffffff", { rough: 0.25, emissive: "#ffe2a3", glow: 0.12 }),
+    mat("#f0c066", { rough: 0.34, metal: 0.3 }),
   );
   bow.geometry.center();
   bow.position.y = 0.52;
@@ -220,49 +223,10 @@ export function createStory(opts: Options): StoryEngine {
   beam.visible = false;
   scene.add(beam);
 
-  /* ───────────── Konfetti ───────────── */
-  const confettiCount = mobile ? 70 : 160;
-  const cGeo = new BufferGeometry();
-  const palette = ["#ff5a36", "#ffc23d", "#8b7cf6", "#4fd1a5", "#5cb8f7", "#ffffff"].map((c) => new Color(c));
-  const aDir = new Float32Array(confettiCount * 3);
-  const aColor = new Float32Array(confettiCount * 3);
-  const aSpeed = new Float32Array(confettiCount);
-  const aSize = new Float32Array(confettiCount);
-  const aSeed = new Float32Array(confettiCount);
-  for (let i = 0; i < confettiCount; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const up = 0.55 + Math.random() * 0.45;
-    const spread = Math.sqrt(1 - up * up);
-    aDir.set([Math.cos(theta) * spread, up, Math.sin(theta) * spread], i * 3);
-    const c = palette[i % palette.length];
-    // Shader gibt Farben direkt aus: sRGB-Werte verwenden
-    const s = c.clone().convertLinearToSRGB();
-    aColor.set([s.r, s.g, s.b], i * 3);
-    aSpeed[i] = 1.6 + Math.random() * 2.4;
-    aSize[i] = 5 + Math.random() * 5;
-    aSeed[i] = Math.random();
-  }
-  cGeo.setAttribute("position", new BufferAttribute(new Float32Array(confettiCount * 3), 3));
-  cGeo.setAttribute("aDir", new BufferAttribute(aDir, 3));
-  cGeo.setAttribute("aColor", new BufferAttribute(aColor, 3));
-  cGeo.setAttribute("aSpeed", new BufferAttribute(aSpeed, 1));
-  cGeo.setAttribute("aSize", new BufferAttribute(aSize, 1));
-  cGeo.setAttribute("aSeed", new BufferAttribute(aSeed, 1));
-  const confettiMat = new ShaderMaterial({
-    vertexShader: confettiShader.vertex,
-    fragmentShader: confettiShader.fragment,
-    uniforms: {
-      uBurst: { value: 0 },
-      uTime: { value: 0 },
-      uPixelRatio: { value: dpr },
-      uOrigin: { value: new Vector3(0, 0.6, 0) },
-    },
-    transparent: true,
-    depthWrite: false,
-  });
-  const confetti = new Points(cGeo, confettiMat);
-  confetti.frustumCulled = false;
-  scene.add(confetti);
+  /* ───────────── Konfetti (3D-Teilchen, eigene Datei) ───────────── */
+  const confetti = createConfetti(scene, mobile);
+  const confettiOrigin = new Vector3();
+  let burstStart = -1;
 
   /* ───────────── Produkte im Glücksrad (echte 3D-Modelle) ───────────── */
   const ring = new Group();
@@ -295,14 +259,10 @@ export function createStory(opts: Options): StoryEngine {
           const m = (o as Mesh).material as MeshStandardMaterial | undefined;
           if (!m) return;
           loadedMaterials.add(m);
-          // spiegelndes Glas würde das Ziffernblatt verdecken
-          if (/glass/i.test(m.name)) {
-            m.metalness = 0;
-            m.roughness = 0.05;
-            m.transparent = true;
-            m.opacity = 0.18;
-            m.depthWrite = false;
-          }
+          // ruhiger wirken lassen: weniger Spiegelung, flachere Oberflächenstruktur
+          m.envMapIntensity = 0.7;
+          m.metalness *= 0.55;
+          m.normalScale?.setScalar(0.55);
         });
         obj.add(front);
       })
@@ -341,7 +301,7 @@ export function createStory(opts: Options): StoryEngine {
     bevelSegments: 2,
   });
   starGeo.center();
-  const starOn = mat("#ffc23d", { rough: 0.25, metal: 0.1, emissive: "#ffb000", glow: 0.25 });
+  const starOn = mat("#f5bf4f", { rough: 0.42, metal: 0.05, emissive: "#f0a020", glow: 0.06 });
   const starOff = mat("#d4cbef", { rough: 0.45 });
   const stars = Array.from({ length: 5 }, (_, i) => {
     const m = new Mesh(starGeo, starOff);
@@ -443,7 +403,6 @@ export function createStory(opts: Options): StoryEngine {
     const lidOff = easeOut(seg(p, 0.6, 0.68));
     const beamIn = seg(p, 0.6, 0.66) * (1 - seg(p, 0.92, 0.99));
     const rise = easeOut(seg(p, 0.63, 0.73));
-    const burst = seg(p, 0.61, 0.8);
 
     /* Phase 4: Bewerten (0.82 – 1) */
     const rate = seg(p, 0.82, 1);
@@ -479,7 +438,7 @@ export function createStory(opts: Options): StoryEngine {
       -fling * 0.8,
     );
     lid.rotation.set(-lift * 0.5 - fling * 1.2, fling * 2.5, fling * 1.6);
-    glowMat.emissiveIntensity = Math.max(lift, lidOff) * 2.2;
+    glowMat.emissiveIntensity = Math.max(lift, lidOff) * 1.1;
 
     // ── Schatten und Straße ──
     shadow.position.set(box.position.x, MathUtils.lerp(heroPos.y - 0.62 * heroScale, -0.62, heroOut), 0);
@@ -495,10 +454,12 @@ export function createStory(opts: Options): StoryEngine {
     beam.position.set(box.position.x, box.position.y + 2.35, 0);
     beamMat.uniforms.uOpacity.value = beamIn;
     beamMat.uniforms.uTime.value = t;
-    confettiMat.uniforms.uBurst.value = burst;
-    confettiMat.uniforms.uTime.value = t;
-    (confettiMat.uniforms.uOrigin.value as Vector3).set(box.position.x, box.position.y + 0.7, 0);
-    bgMat.uniforms.uWarm.value = beamIn;
+    // Konfetti läuft in echter Zeit ab, sobald der Deckel abgeht – egal wie schnell gescrollt wird
+    if (p >= 0.615 && burstStart < 0) burstStart = t;
+    if (p < 0.58) burstStart = -1;
+    confettiOrigin.set(box.position.x, box.position.y + 0.5, 0);
+    confetti.update(burstStart < 0 ? -1 : t - burstStart, confettiOrigin);
+    bgMat.uniforms.uWarm.value = beamIn * 0.6;
     bgMat.uniforms.uShift.value = p;
 
     // ── Glücksrad ──
@@ -575,6 +536,10 @@ export function createStory(opts: Options): StoryEngine {
     camera.position.set(px * 0.4, focusY + 0.5 + roadIn * dist * 0.12 + py * 0.25, zoom);
     lookAt.set(0, focusY, 0);
     camera.lookAt(lookAt);
+    // Schleier immer relativ zum Kameraabstand: vorne kaum, hinten etwas mehr
+    const fog = scene.fog as Fog;
+    fog.near = zoom * 0.8;
+    fog.far = zoom * 2.6;
 
     return { frontIndex };
   }
@@ -618,7 +583,6 @@ export function createStory(opts: Options): StoryEngine {
       if (slowFrames > 45 && dpr > 1) {
         dpr = Math.max(1, dpr - 0.35);
         renderer.setPixelRatio(dpr);
-        confettiMat.uniforms.uPixelRatio.value = dpr;
         resize();
       }
       frames = 0;
@@ -666,7 +630,8 @@ export function createStory(opts: Options): StoryEngine {
         m.geometry?.dispose?.();
       });
       materials.forEach((m) => m.dispose());
-      [bgMat, shadowMat, roadMat, beamMat, confettiMat].forEach((m) => m.dispose());
+      [bgMat, shadowMat, roadMat, beamMat].forEach((m) => m.dispose());
+      confetti.dispose();
       envTexture.dispose();
       renderer.dispose();
     },

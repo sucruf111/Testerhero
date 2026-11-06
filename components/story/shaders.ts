@@ -48,10 +48,10 @@ export const backgroundShader = {
       float n2 = snoise(p * 1.9 - vec2(t * 0.6, t * 0.9) + n1 * 0.45);
       float n3 = snoise(p * 0.7 + vec2(-t * 0.4, t * 0.3) - vec2(uShift * 0.4, 0.0));
 
-      vec3 cream = vec3(0.992, 0.976, 0.957);
-      vec3 coral = vec3(1.0, 0.80, 0.72);
-      vec3 sun   = vec3(1.0, 0.90, 0.64);
-      vec3 lilac = vec3(0.88, 0.86, 1.0);
+      vec3 cream = vec3(0.955, 0.918, 0.880);
+      vec3 coral = vec3(0.965, 0.770, 0.700);
+      vec3 sun   = vec3(0.970, 0.865, 0.660);
+      vec3 lilac = vec3(0.835, 0.815, 0.945);
 
       vec3 col = cream;
       col = mix(col, coral, smoothstep(0.05, 0.95, n1 * 0.5 + 0.5) * 0.6);
@@ -60,9 +60,9 @@ export const backgroundShader = {
 
       // warmes Leuchten beim Auspacken
       float d = length(p - vec2(0.0, 0.08));
-      col = mix(col, vec3(1.0, 0.94, 0.80), uWarm * smoothstep(0.95, 0.0, d) * 0.75);
+      col = mix(col, vec3(1.0, 0.95, 0.86), uWarm * smoothstep(0.95, 0.0, d) * 0.6);
 
-      col *= 1.0 - 0.07 * length(p);
+      col *= 1.0 - 0.12 * length(p);
       float grain = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
       col += (grain - 0.5) * 0.022;
       gl_FragColor = vec4(col, 1.0);
@@ -92,67 +92,8 @@ export const beamShader = {
       float fade = pow(1.0 - vUv.y, 1.4);
       float edge = pow(vFacing, 1.6);
       float rays = 0.75 + 0.25 * sin(vUv.x * 40.0 + uTime * 1.5) * sin(vUv.x * 17.0 - uTime);
-      vec3 col = mix(vec3(1.0, 0.86, 0.45), vec3(1.0, 0.98, 0.92), vUv.y);
-      gl_FragColor = vec4(col, fade * edge * rays * uOpacity * 0.85);
-    }
-  `,
-};
-
-/** Konfetti in Markenfarben, komplett auf der Grafikkarte berechnet */
-export const confettiShader = {
-  vertex: /* glsl */ `
-    attribute vec3 aDir;
-    attribute vec3 aColor;
-    attribute float aSpeed;
-    attribute float aSize;
-    attribute float aSeed;
-    uniform float uBurst;
-    uniform float uTime;
-    uniform float uPixelRatio;
-    uniform vec3 uOrigin;
-    varying vec3 vColor;
-    varying float vAlpha;
-    varying float vSeed;
-    varying float vRot;
-    varying float vFlip;
-    void main() {
-      float b = uBurst;
-      float travel = 1.0 - pow(1.0 - b, 3.0);
-      vec3 pos = uOrigin + aDir * travel * aSpeed;
-      pos.y -= b * b * 1.6;
-      pos.x += sin(uTime * 3.0 + aSeed * 12.0) * 0.08 * b;
-      pos.z += cos(uTime * 2.3 + aSeed * 7.0) * 0.06 * b;
-      vec4 mv = modelViewMatrix * vec4(pos, 1.0);
-      gl_PointSize = aSize * uPixelRatio * (34.0 / -mv.z) * step(0.001, b);
-      gl_Position = projectionMatrix * mv;
-      vColor = aColor;
-      vSeed = aSeed;
-      vRot = aSeed * 6.283 + uTime * (1.5 + aSeed * 3.0);
-      vFlip = cos(uTime * (3.0 + aSeed * 4.0) + aSeed * 20.0);
-      vAlpha = (1.0 - smoothstep(0.65, 1.0, b)) * smoothstep(0.0, 0.05, b);
-    }
-  `,
-  fragment: /* glsl */ `
-    varying vec3 vColor;
-    varying float vAlpha;
-    varying float vSeed;
-    varying float vRot;
-    varying float vFlip;
-    void main() {
-      vec2 c = gl_PointCoord - 0.5;
-      // drehen und „flattern“ lassen, damit es wie echtes Papier wirkt
-      float cr = cos(vRot), sr = sin(vRot);
-      c = mat2(cr, -sr, sr, cr) * c;
-      float flip = max(abs(vFlip), 0.18);
-      float shape;
-      if (vSeed < 0.35) {
-        shape = 1.0 - smoothstep(0.26, 0.32, length(vec2(c.x / flip, c.y)));
-      } else {
-        vec2 q = abs(vec2(c.x / flip, c.y)) - vec2(0.13, 0.3);
-        shape = 1.0 - smoothstep(0.0, 0.04, length(max(q, 0.0)));
-      }
-      if (shape < 0.01) discard;
-      gl_FragColor = vec4(vColor * (0.78 + 0.22 * abs(vFlip)), shape * vAlpha);
+      vec3 col = mix(vec3(1.0, 0.9, 0.66), vec3(1.0, 0.97, 0.93), vUv.y);
+      gl_FragColor = vec4(col, fade * edge * rays * uOpacity * 0.38);
     }
   `,
 };

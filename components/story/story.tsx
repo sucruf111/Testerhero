@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, Check, ChevronDown } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import type { FrameInfo, StoryEngine } from "./engine";
@@ -10,11 +10,25 @@ import { BoxPoster } from "./poster";
 import { pickRandomProducts, type ExampleProduct } from "./products";
 
 const STEPS = [
-  { title: "Wir losen aus", text: "Gibt es ein neues Produkt, losen wir aus, wer es bekommt. Mitmachen kostet nichts." },
-  { title: "Dein Paket kommt", text: "Wir schicken es dir nach Hause. Was drin ist, bleibt bis zum Schluss geheim." },
-  { title: "Auspacken und behalten", text: "Erst beim Auspacken siehst du, was drin ist. Das Produkt darfst du behalten." },
-  { title: "Kurz bewerten", text: "Probier es aus und sag uns, wie du es findest. Ein paar Sätze reichen." },
+  {
+    title: "Kostenlos anmelden",
+    text: "Konto anlegen und E-Mail-Adresse bestätigen. Ab dann bist du bei jeder Auslosung automatisch dabei.",
+  },
+  {
+    title: "Adresse hinterlegen",
+    text: "Sag uns, wohin dein Paket soll. Der Versand ist kostenlos, und die Adresse nutzen wir nur dafür.",
+  },
+  {
+    title: "Auf dein Paket warten",
+    text: "Wirst du ausgelost, kommt ein Überraschungspaket zu dir. Was drin ist, siehst du erst beim Auspacken.",
+  },
+  {
+    title: "Kurz bewerten",
+    text: "Probier das Produkt aus und schreib uns in ein paar Sätzen, wie du es findest. Ehrlich, auch Kritik hilft. Behalten darfst du es so oder so.",
+  },
 ];
+
+const TRUST = ["Kein Abo", "Keine Zahlungsdaten", "Versand kostenlos", "Jederzeit abmelden"];
 
 /** Sichtbarkeitsfenster der vier Schritte auf der Scroll-Strecke */
 const WINDOWS: [number, number][] = [
@@ -39,7 +53,7 @@ function canUse3D() {
   }
 }
 
-export function Story({ loggedIn }: { loggedIn: boolean }) {
+export function Story({ loggedIn, freeSlots }: { loggedIn: boolean; freeSlots: number }) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -203,7 +217,7 @@ export function Story({ loggedIn }: { loggedIn: boolean }) {
   }, []);
 
   const ctaHref = loggedIn ? "/konto" : "/registrieren";
-  const ctaLabel = loggedIn ? "Zu meinen Paketen" : "Kostenlos mitmachen";
+  const ctaLabel = loggedIn ? "Zu meinen Paketen" : "100 % kostenlos mitmachen";
 
   return (
     <section ref={sectionRef} id="so-gehts" className="story" aria-label="So funktioniert TesterHero">
@@ -212,28 +226,44 @@ export function Story({ loggedIn }: { loggedIn: boolean }) {
 
         {/* Einstieg */}
         <div ref={heroRef} className="story-hero absolute inset-0 z-10">
-          <div className="mx-auto grid h-full max-w-6xl content-start gap-6 px-4 pt-24 sm:px-6 md:content-center md:pt-16 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+          <div className="mx-auto grid h-full max-w-6xl content-start gap-4 px-4 pt-20 sm:px-6 md:content-center md:gap-6 md:pt-16 lg:grid-cols-[1.1fr_1fr] lg:items-center">
             <div>
-              <h1 className="font-display text-[clamp(1.75rem,8.4vw,2.6rem)] leading-[1.04] font-bold tracking-tight sm:text-6xl lg:text-[4.2rem]">
-                Überraschungspakete testen <span className="text-coral-500">und behalten.</span>
-              </h1>
-              <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-ink-soft">
-                Melde dich kostenlos an. Ab und zu schicken wir dir ein neues Produkt nach Hause. Was drin ist, siehst du
-                erst beim Auspacken.
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/80 py-1 pr-3 pl-2 text-xs font-semibold text-ink-soft shadow-soft ring-1 ring-line backdrop-blur">
+                <span className="relative flex size-2" aria-hidden>
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-coral-400 opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-coral-500" />
+                </span>
+                {freeSlots > 0 ? `Gerade noch ${freeSlots} Pakete frei` : "Plätze pro Produkt begrenzt"}
               </p>
-              <div className="mt-6 flex flex-wrap gap-2.5">
+              <h1 className="font-display text-[clamp(1.9rem,9vw,2.6rem)] leading-[1.04] font-bold tracking-tight sm:text-6xl lg:text-[4.2rem]">
+                Produkte testen. <span className="block text-coral-500">100 % kostenlos.</span>
+              </h1>
+              <p className="mt-3 max-w-lg text-[16px] leading-relaxed text-ink-soft sm:mt-4 sm:text-[17px]">
+                Hersteller wollen ehrliche Meinungen zu ihren Produkten. Darum verlosen wir sie an Tester wie dich:
+                auspacken, ausprobieren, kurz bewerten und behalten.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2.5 md:mt-6">
                 <Link href={ctaHref} className={buttonClass("primary", "lg", "shadow-glow")}>
                   {ctaLabel} <ArrowRight />
                 </Link>
                 {!loggedIn && (
-                  <Link href="/anmelden" className={buttonClass("secondary", "lg", "bg-white/80 backdrop-blur")}>
+                  // auf dem Handy steht „Einloggen“ im Menü, hier spart das Platz für die Box
+                  <Link href="/anmelden" className={buttonClass("secondary", "lg", "hidden bg-white/80 backdrop-blur sm:inline-flex")}>
                     Einloggen
                   </Link>
                 )}
               </div>
+              <ul className="mt-3.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-medium text-ink-soft sm:mt-4">
+                {TRUST.map((t) => (
+                  <li key={t} className="flex items-center gap-1.5">
+                    <Check className="size-3.5 text-coral-500" aria-hidden />
+                    {t}
+                  </li>
+                ))}
+              </ul>
             </div>
             <div className="pointer-events-none flex justify-center lg:justify-end" aria-hidden>
-              <div ref={posterRef} className="mt-6 w-44 sm:w-56 lg:mt-0 lg:mr-12 lg:w-80">
+              <div ref={posterRef} className="mt-2 w-36 sm:w-56 lg:mt-0 lg:mr-12 lg:w-80">
                 <BoxPoster className="story-poster w-full" />
               </div>
             </div>
