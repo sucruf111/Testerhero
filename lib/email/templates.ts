@@ -36,7 +36,7 @@ export function assignedTemplate(tester: Named): EmailContent {
     heading: `Hallo ${tester.firstName},`,
     paragraphs: [
       "gute Nachricht: Du wurdest für ein Testprodukt ausgelost. Was es ist, verraten wir noch nicht.",
-      "Wir packen dein Paket in den nächsten Tagen und schicken dir die Sendungsnummer, sobald es unterwegs ist. Bitte prüf kurz in deinem Konto, ob deine Adresse stimmt.",
+      "Wir packen dein Paket in den nächsten Tagen und sagen dir Bescheid, sobald es unterwegs ist. Bitte prüf kurz in deinem Konto, ob deine Adresse stimmt.",
     ],
     cta: { label: "Adresse prüfen", url: `${getBaseUrl()}/konto/profil` },
   };
@@ -54,23 +54,15 @@ export function cancelledTemplate(tester: Named): EmailContent {
   };
 }
 
-export function shippedTemplate(
-  tester: Named,
-  shipping: { carrier?: string | null; trackingNumber?: string | null },
-): EmailContent {
-  const highlight = [
-    ...(shipping.carrier ? [{ label: "Versand mit", value: shipping.carrier }] : []),
-    ...(shipping.trackingNumber ? [{ label: "Sendungsnummer", value: shipping.trackingNumber }] : []),
-  ];
+export function shippedTemplate(tester: Named): EmailContent {
   return {
     subject: "Dein Überraschungspaket ist unterwegs",
     preheader: "Wir haben dein Paket verschickt.",
     heading: `Hallo ${tester.firstName},`,
     paragraphs: [
-      "dein Überraschungspaket ist unterwegs zu dir.",
-      "Wenn es angekommen ist, sag uns bitte in deinem Konto Bescheid. Dann siehst du dort auch, was drin ist, und kannst nach dem Testen deine Bewertung schreiben.",
+      "dein Überraschungspaket ist unterwegs zu dir und sollte in den nächsten Tagen ankommen.",
+      "Wenn es da ist, sag uns bitte in deinem Konto Bescheid. Dann siehst du dort auch, was drin ist, und kannst nach dem Testen deine Bewertung schreiben.",
     ],
-    highlight,
     cta: { label: "Zu meinen Paketen", url: `${getBaseUrl()}/konto` },
   };
 }

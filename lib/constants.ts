@@ -23,8 +23,6 @@ export const COUNTRIES: Record<string, string> = {
   CH: "Schweiz",
 };
 
-export const CARRIERS = ["DHL", "Hermes", "DPD", "GLS", "UPS", "Deutsche Post", "Amazon"] as const;
-
 export const APPLICATION_STATUS: Record<
   ApplicationStatus,
   { label: string; testerLabel: string; tone: Tone }

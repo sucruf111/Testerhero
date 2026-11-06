@@ -9,7 +9,7 @@ export type EmailContent = {
   heading: string;
   paragraphs: string[];
   cta?: { label: string; url: string };
-  /** zusätzliche Infobox (z. B. Sendungsnummer) */
+  /** zusätzliche Infobox mit Label und Wert */
   highlight?: { label: string; value: string }[];
   footnote?: string;
 };

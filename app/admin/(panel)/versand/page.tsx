@@ -3,14 +3,12 @@ import Link from "next/link";
 import { Download, PackageCheck, Truck } from "lucide-react";
 import { PageHeader, Panel } from "@/components/admin/ui";
 import { buttonClass } from "@/components/ui/button";
-import { compactInputClass } from "@/components/ui/form";
 import { Badge, EmptyState } from "@/components/ui/misc";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { bulkApplicationsAction, updateApplicationAction } from "@/lib/actions/admin";
 import { getRecentlyShipped, getShippingQueue } from "@/lib/admin-queries";
 import { requireAdmin } from "@/lib/auth/session";
-import { cn } from "@/lib/cn";
-import { CARRIERS, COUNTRIES } from "@/lib/constants";
+import { COUNTRIES } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { SelectAll } from "../produkte/[id]/select-all";
 import { CopyAddress } from "./copy-address";
@@ -113,16 +111,9 @@ export default async function ShippingPage() {
                             <CopyAddress text={lines.join("\n")} />
                           </div>
                         </div>
-                        <form action={updateApplicationAction} className="flex flex-wrap gap-2 lg:justify-end">
+                        <form action={updateApplicationAction} className="lg:justify-self-end">
                           <input type="hidden" name="applicationId" value={app.id} />
                           <input type="hidden" name="status" value="shipped" />
-                          <select name="carrier" defaultValue="DHL" className={cn(compactInputClass, "select-chevron w-24 pr-7")} aria-label="Versanddienstleister">
-                            <option value="">–</option>
-                            {CARRIERS.map((c) => (
-                              <option key={c}>{c}</option>
-                            ))}
-                          </select>
-                          <input name="trackingNumber" placeholder="Sendungsnr." aria-label="Sendungsnummer" className={cn(compactInputClass, "w-36")} />
                           <SubmitButton size="sm">
                             <Truck /> Versendet
                           </SubmitButton>
@@ -150,8 +141,6 @@ export default async function ShippingPage() {
                 </span>
                 <span className="text-muted">
                   {formatDate(app.shippedAt)}
-                  {app.carrier && ` · ${app.carrier}`}
-                  {app.trackingNumber && ` · ${app.trackingNumber}`}
                   {app.status === "received" && <Badge tone="coral" className="ml-2">Angekommen</Badge>}
                 </span>
               </li>

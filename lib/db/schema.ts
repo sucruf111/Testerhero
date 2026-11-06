@@ -144,6 +144,7 @@ export const applications = dbSchema.table(
       .references(() => testers.id, { onDelete: "cascade" }),
     status: applicationStatus("status").notNull().default("pending"),
     motivation: text("motivation"),
+    // Werden aktuell nicht genutzt (keine Sendungsnummern), bleiben für spätere Erweiterungen
     trackingNumber: text("tracking_number"),
     carrier: text("carrier"),
     decidedAt: timestamp("decided_at", { withTimezone: true }),

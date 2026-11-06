@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 export const inputClass =
   "block w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-[15px] text-ink transition placeholder:text-muted/60 hover:border-ink/20 focus:border-coral-400 focus:ring-3 focus:ring-coral-100 focus:outline-none aria-[invalid=true]:border-red-400 disabled:bg-sand disabled:text-muted";
 
-/** Kompakte Felder für Tabellenzeilen (z. B. Sendungsnummer) */
+/** Kompakte Felder für Tabellenzeilen */
 export const compactInputClass =
   "h-8 rounded-lg border border-line bg-white px-3 text-[13px] text-ink transition placeholder:text-muted/60 focus:border-coral-400 focus:ring-3 focus:ring-coral-100 focus:outline-none";
 

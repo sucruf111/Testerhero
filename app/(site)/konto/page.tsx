@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExternalLink, Gift, PackageCheck, PenLine, Truck, Undo2 } from "lucide-react";
+import { Gift, PackageCheck, PenLine, Truck, Undo2 } from "lucide-react";
 import { ProductImage } from "@/components/product-image";
 import { buttonClass } from "@/components/ui/button";
 import { Alert } from "@/components/ui/form";
@@ -12,7 +12,6 @@ import { getQuota } from "@/lib/claims";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/format";
 import { getTesterApplications } from "@/lib/queries";
-import { trackingUrl } from "@/lib/tracking";
 import { ResendVerification } from "./resend-verification";
 
 export const metadata: Metadata = { title: "Meine Pakete" };
@@ -84,11 +83,10 @@ type App = Awaited<ReturnType<typeof getTesterApplications>>[number];
 function PackageRow({ app }: { app: App }) {
   // Das Produkt bleibt verdeckt, bis der Tester das Paket ausgepackt hat
   const revealed = app.status === "received" || app.status === "reviewed";
-  const track = trackingUrl(app.carrier, app.trackingNumber);
 
   const state = {
     accepted: { label: "Ausgelost", text: "Wir packen gerade dein Paket.", icon: Gift },
-    shipped: { label: "Unterwegs", text: `Verschickt am ${formatDate(app.shippedAt)}.`, icon: Truck },
+    shipped: { label: "Unterwegs", text: `Verschickt am ${formatDate(app.shippedAt)}. Es sollte in den nächsten Tagen ankommen.`, icon: Truck },
     received: { label: "Ausgepackt", text: "Viel Spaß beim Testen.", icon: PackageCheck },
     reviewed: { label: "Bewertet", text: "Danke für deine Bewertung.", icon: PenLine },
   }[app.status as "accepted" | "shipped" | "received" | "reviewed"];
@@ -113,19 +111,6 @@ function PackageRow({ app }: { app: App }) {
           </div>
           <p className="mt-0.5 text-sm text-muted">
             {state.text}
-            {app.status === "shipped" && app.trackingNumber && (
-              <>
-                {" "}
-                {app.carrier ? `${app.carrier}, ` : ""}Sendungsnummer{" "}
-                {track ? (
-                  <a href={track} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 font-semibold text-coral-600 hover:underline">
-                    {app.trackingNumber} <ExternalLink className="size-3" />
-                  </a>
-                ) : (
-                  <span className="font-mono">{app.trackingNumber}</span>
-                )}
-              </>
-            )}
           </p>
           {revealed && app.product.shortDescription && app.status === "received" && (
             <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{app.product.shortDescription}</p>

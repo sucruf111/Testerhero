@@ -1,14 +1,12 @@
 import Link from "next/link";
-import { ExternalLink, PackageCheck, Truck, X } from "lucide-react";
-import { compactInputClass } from "@/components/ui/form";
+import { PackageCheck, Truck, X } from "lucide-react";
 import { Badge, Stars } from "@/components/ui/misc";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { bulkApplicationsAction, updateApplicationAction } from "@/lib/actions/admin";
 import type { getProductApplications } from "@/lib/admin-queries";
 import { cn } from "@/lib/cn";
-import { APPLICATION_STATUS, CARRIERS, TESTER_STATUS } from "@/lib/constants";
+import { APPLICATION_STATUS, TESTER_STATUS } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
-import { trackingUrl } from "@/lib/tracking";
 import { SelectAll } from "./select-all";
 
 type Apps = Awaited<ReturnType<typeof getProductApplications>>;
@@ -100,16 +98,9 @@ function RowActions({ app, disabled }: { app: Apps[number]; disabled: boolean })
     case "accepted":
       return (
         <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
-          <form action={updateApplicationAction} className="flex flex-wrap gap-1.5">
+          <form action={updateApplicationAction}>
             {hidden}
             <input type="hidden" name="status" value="shipped" />
-            <select name="carrier" defaultValue="DHL" className={cn(compactInputClass, "select-chevron w-24 pr-7")} aria-label="Versanddienstleister">
-              <option value="">–</option>
-              {CARRIERS.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-            <input name="trackingNumber" placeholder="Sendungsnr." aria-label="Sendungsnummer" className={cn(compactInputClass, "w-32")} />
             <SubmitButton size="sm" variant="dark" disabled={disabled}>
               <Truck /> Versendet
             </SubmitButton>
@@ -123,22 +114,10 @@ function RowActions({ app, disabled }: { app: Apps[number]; disabled: boolean })
           </form>
         </div>
       );
-    case "shipped": {
-      const url = trackingUrl(app.carrier, app.trackingNumber);
+    case "shipped":
       return (
         <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted lg:justify-end">
-          <span>
-            {formatDate(app.shippedAt)}
-            {app.carrier && ` · ${app.carrier}`}
-            {app.trackingNumber &&
-              (url ? (
-                <a href={url} target="_blank" rel="noreferrer" className="ml-1 inline-flex items-center gap-0.5 font-semibold text-coral-600 hover:underline">
-                  {app.trackingNumber} <ExternalLink className="size-3" />
-                </a>
-              ) : (
-                <span className="ml-1 font-mono">{app.trackingNumber}</span>
-              ))}
-          </span>
+          <span>Versendet am {formatDate(app.shippedAt)}</span>
           <form action={updateApplicationAction}>
             {hidden}
             <input type="hidden" name="status" value="received" />
@@ -148,7 +127,6 @@ function RowActions({ app, disabled }: { app: Apps[number]; disabled: boolean })
           </form>
         </div>
       );
-    }
     case "received":
       return <p className="text-[13px] text-muted lg:text-right">Ausgepackt am {formatDate(app.receivedAt)}, Bewertung fehlt noch</p>;
     case "reviewed":

@@ -145,7 +145,6 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
                           <td className={`${td} text-muted`}>{formatDate(a.decidedAt ?? a.createdAt)}</td>
                           <td className={`${td} text-muted`}>
                             {a.shippedAt ? formatDate(a.shippedAt) : "–"}
-                            {a.trackingNumber && <span className="block font-mono text-xs">{a.trackingNumber}</span>}
                           </td>
                           <td className={td}>
                             <Badge tone={s.tone}>{s.label}</Badge>

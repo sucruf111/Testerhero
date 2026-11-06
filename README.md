@@ -4,7 +4,7 @@ Plattform für eine Agentur, die neue Produkte von echten Menschen testen lassen
 
 1. Tester melden sich kostenlos an und hinterlegen ihre Lieferadresse.
 2. Die Agentur legt ein Produkt an und stellt es auf „Aktiv“. Das System lost die Plätze sofort per Zufall unter allen berechtigten Testern aus.
-3. Die Agentur verschickt die Pakete (mit Sendungsnummer). Was drin ist, sieht der Tester erst, wenn er das Paket im Konto als „ausgepackt“ markiert.
+3. Die Agentur verschickt die Pakete. Was drin ist, sieht der Tester erst, wenn er das Paket im Konto als „ausgepackt“ markiert.
 4. Der Tester schreibt eine Bewertung. Die bleibt intern, es gibt keine Veröffentlichung auf Amazon. Das Produkt darf er behalten.
 
 Die gesamte Oberfläche ist auf Deutsch.
@@ -23,7 +23,7 @@ Die gesamte Oberfläche ist auf Deutsch.
 **Für Tester**
 - Startseite mit Ablauf, Regeln und Fragen
 - Anmeldung mit Lieferadresse und Bestätigung per E-Mail
-- „Meine Pakete“: Überraschungspaket mit Status, Sendungsverfolgung, „Paket ist da, auspacken“, danach Bewertung
+- „Meine Pakete“: Überraschungspaket mit Status, „Paket ist da, auspacken“, danach Bewertung
 - Paket ablehnen, solange es noch nicht verschickt ist (der Platz wird neu ausgelost)
 - Profil: Adresse und Passwort ändern, abmelden, Konto löschen
 - Abmelden über den Link in jeder E-Mail (ohne Login) und per One-Click im E-Mail-Programm (RFC 8058)
@@ -31,13 +31,13 @@ Die gesamte Oberfläche ist auf Deutsch.
 **Für die Agentur (`/admin`)**
 - Übersicht: zu versenden, beim Tester, aktive Tester, Bewertungen, freie Plätze
 - Produkte anlegen (Bild-URL oder Upload über Vercel Blob), aktivieren, beenden
-- Pro Produkt: wer es bekommen hat, Versand mit Sendungsnummer, stornieren (einzeln oder mehrere)
-- Versand-Seite mit allen Adressen, „Adresse kopieren“ und CSV-Versandliste
+- Pro Produkt: wer es bekommen hat, als versendet markieren, stornieren (einzeln oder mehrere)
+- Versand-Seite mit allen Adressen, „Adresse kopieren“, „Versendet“ und CSV-Versandliste
 - Tester suchen, sperren, löschen, interne Notizen
 - Bewertungen je Produkt mit Durchschnitt und CSV-Export
 - Einstellungen für die Limits
 
-**Automatische E-Mails** (über Resend): Bestätigungslink, ausgelost (ohne Produktnamen), versendet mit Sendungsnummer, storniert, Passwort zurücksetzen.
+**Automatische E-Mails** (über Resend): Bestätigungslink, ausgelost (ohne Produktnamen), versendet, storniert, Passwort zurücksetzen.
 
 ## Technik
 

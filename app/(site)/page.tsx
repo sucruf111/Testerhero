@@ -143,7 +143,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 function PackagePreview() {
   const rows = [
     { icon: Gift, title: "Du wurdest ausgelost", text: "Wir packen dein Paket.", done: true },
-    { icon: Truck, title: "Paket unterwegs", text: "Sendungsnummer per E-Mail", done: true },
+    { icon: Truck, title: "Paket unterwegs", text: "Kommt direkt zu dir nach Hause", done: true },
     { icon: PackageCheck, title: "Auspacken", text: "Jetzt siehst du, was drin ist.", done: false },
     { icon: PenLine, title: "Bewerten", text: "Ein paar Sätze reichen.", done: false },
   ];

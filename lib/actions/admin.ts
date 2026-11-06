@@ -141,7 +141,7 @@ async function notify(app: AppWithRelations, status: ApplicationStatus) {
   if (tester.status !== "active") return;
   if (status === "accepted") await sendEmail(tester, assignedTemplate(tester));
   if (status === "rejected") await sendEmail(tester, cancelledTemplate(tester));
-  if (status === "shipped") await sendEmail(tester, shippedTemplate(tester, app));
+  if (status === "shipped") await sendEmail(tester, shippedTemplate(tester));
 }
 
 const statusSchema = z.enum(["accepted", "rejected", "shipped", "received"]);
@@ -149,7 +149,6 @@ const statusSchema = z.enum(["accepted", "rejected", "shipped", "received"]);
 async function applyStatus(
   ids: string[],
   status: ApplicationStatus,
-  extra: { carrier?: string | null; trackingNumber?: string | null } = {},
 ) {
   const apps = await loadApplications(ids);
   const now = new Date();
@@ -163,8 +162,6 @@ async function applyStatus(
     if (status === "accepted" || status === "rejected") patch.decidedAt = now;
     if (status === "shipped") {
       patch.shippedAt = app.shippedAt ?? now;
-      if (extra.carrier !== undefined) patch.carrier = extra.carrier;
-      if (extra.trackingNumber !== undefined) patch.trackingNumber = extra.trackingNumber;
     }
     if (status === "received") patch.receivedAt = now;
 
@@ -183,9 +180,7 @@ export async function updateApplicationAction(formData: FormData) {
   await requireAdmin();
   const id = z.uuid().parse(formData.get("applicationId"));
   const status = statusSchema.parse(formData.get("status"));
-  const carrier = String(formData.get("carrier") ?? "").trim() || null;
-  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim() || null;
-  await applyStatus([id], status, status === "shipped" ? { carrier, trackingNumber } : {});
+  await applyStatus([id], status);
 }
 
 export async function bulkApplicationsAction(formData: FormData) {

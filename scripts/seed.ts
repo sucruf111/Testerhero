@@ -133,11 +133,11 @@ async function main() {
       { productId: milk.id, testerId: T[6].id, status: "accepted", decidedAt: daysAgo(1) },
       { productId: milk.id, testerId: T[3].id, status: "accepted", decidedAt: daysAgo(1) },
       { productId: headphones.id, testerId: T[1].id, status: "accepted", decidedAt: daysAgo(2) },
-      { productId: headphones.id, testerId: T[5].id, status: "shipped", decidedAt: daysAgo(6), shippedAt: daysAgo(3), carrier: "DHL", trackingNumber: "00340434161094042557" },
-      { productId: serum.id, testerId: T[2].id, status: "received", decidedAt: daysAgo(8), shippedAt: daysAgo(6), receivedAt: daysAgo(4), carrier: "Hermes" },
-      { productId: yoga.id, testerId: T[4].id, status: "reviewed", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(25), carrier: "Hermes" },
-      { productId: yoga.id, testerId: T[1].id, status: "reviewed", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(24), carrier: "Hermes" },
-      { productId: yoga.id, testerId: T[3].id, status: "received", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(23), carrier: "Hermes" },
+      { productId: headphones.id, testerId: T[5].id, status: "shipped", decidedAt: daysAgo(6), shippedAt: daysAgo(3) },
+      { productId: serum.id, testerId: T[2].id, status: "received", decidedAt: daysAgo(8), shippedAt: daysAgo(6), receivedAt: daysAgo(4) },
+      { productId: yoga.id, testerId: T[4].id, status: "reviewed", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(25) },
+      { productId: yoga.id, testerId: T[1].id, status: "reviewed", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(24) },
+      { productId: yoga.id, testerId: T[3].id, status: "received", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(23) },
     ])
     .returning();
 
