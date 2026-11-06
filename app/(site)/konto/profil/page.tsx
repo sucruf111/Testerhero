@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/misc";
 import { requireTester } from "@/lib/auth/session";
-import { formatDate } from "@/lib/format";
 import { DeleteAccountForm, PasswordForm, ProfileForm, UnsubscribeBox } from "./forms";
 
-export const metadata: Metadata = { title: "Profil & Einstellungen" };
+export const metadata: Metadata = { title: "Profil" };
 
 export default async function ProfilePage() {
   const tester = await requireTester("/konto/profil");
@@ -22,54 +21,29 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
-      <div className="space-y-8">
+    <div className="grid gap-5 lg:grid-cols-[1fr_17rem]">
+      <div className="space-y-5">
         <Card>
-          <SectionTitle title="Persönliche Daten & Lieferadresse" text="An diese Adresse schicken wir deine Testprodukte." />
-          <ProfileForm values={values} interests={tester.interests} notify={tester.notifyNewProducts} />
+          <h2 className="font-display text-lg font-bold">Deine Daten</h2>
+          <p className="mt-0.5 mb-5 text-sm text-muted">An diese Adresse schicken wir deine Pakete.</p>
+          <ProfileForm values={values} />
         </Card>
         <Card>
-          <SectionTitle title="Passwort ändern" />
+          <h2 className="mb-4 font-display text-lg font-bold">Passwort ändern</h2>
           <PasswordForm />
         </Card>
       </div>
 
-      <aside className="space-y-8">
-        <Card className="p-6 sm:p-6">
-          <h2 className="font-display text-lg font-semibold">Dein Konto</h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between gap-3">
-              <dt className="text-muted">Mitglied seit</dt>
-              <dd className="font-semibold">{formatDate(tester.createdAt)}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-muted">E-Mail bestätigt</dt>
-              <dd className="font-semibold">{tester.emailVerifiedAt ? "Ja" : "Ausstehend"}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-muted">Status</dt>
-              <dd className="font-semibold">{tester.status === "active" ? "Aktiv" : tester.status === "unsubscribed" ? "Abgemeldet" : "Gesperrt"}</dd>
-            </div>
-          </dl>
-        </Card>
+      <aside className="space-y-5">
         {tester.status === "active" && (
-          <Card className="p-6 sm:p-6">
-            <UnsubscribeBox notify={tester.notifyNewProducts} />
+          <Card className="p-5 sm:p-5">
+            <UnsubscribeBox />
           </Card>
         )}
-        <Card className="p-6 ring-red-100 sm:p-6">
+        <Card className="p-5 sm:p-5">
           <DeleteAccountForm />
         </Card>
       </aside>
-    </div>
-  );
-}
-
-function SectionTitle({ title, text }: { title: string; text?: string }) {
-  return (
-    <div className="mb-6">
-      <h2 className="font-display text-2xl font-semibold">{title}</h2>
-      {text && <p className="mt-1 text-[15px] text-muted">{text}</p>}
     </div>
   );
 }

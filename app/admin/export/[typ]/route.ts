@@ -2,7 +2,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { getTestersForExport, type TesterFilter } from "@/lib/admin-queries";
 import { getAdmin } from "@/lib/auth/session";
-import { CATEGORIES, COUNTRIES, TESTER_STATUS } from "@/lib/constants";
+import { COUNTRIES, TESTER_STATUS } from "@/lib/constants";
 import { csvResponse, toCsv } from "@/lib/csv";
 import { db, schema } from "@/lib/db";
 import { formatDate, todayBerlin } from "@/lib/format";
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/admin/export
       orderBy: [asc(schema.applications.productId), asc(schema.applications.decidedAt)],
     });
     const csv = toCsv(
-      ["Vorname", "Nachname", "Straße und Hausnummer", "Adresszusatz", "PLZ", "Ort", "Land", "E-Mail", "Telefon", "Produkt", "Ausgewählt am"],
+      ["Vorname", "Nachname", "Straße und Hausnummer", "Adresszusatz", "PLZ", "Ort", "Land", "E-Mail", "Telefon", "Produkt", "Ausgelost am"],
       rows.map((r) => [
         r.tester.firstName,
         r.tester.lastName,
@@ -47,10 +47,9 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/admin/export
 
   if (typ === "tester") {
     const status = ["active", "unverified", "unsubscribed", "blocked"].find((s) => s === sp.get("status")) as TesterFilter["status"];
-    const interest = CATEGORIES.find((c) => c === sp.get("interesse"));
-    const testers = await getTestersForExport({ q: sp.get("q") ?? undefined, status, interest });
+    const testers = await getTestersForExport({ q: sp.get("q") ?? undefined, status });
     const csv = toCsv(
-      ["Vorname", "Nachname", "E-Mail", "Straße und Hausnummer", "Adresszusatz", "PLZ", "Ort", "Land", "Telefon", "Geburtsjahr", "Interessen", "Status", "E-Mail bestätigt", "Produkt-Mails", "Registriert am"],
+      ["Vorname", "Nachname", "E-Mail", "Straße und Hausnummer", "Adresszusatz", "PLZ", "Ort", "Land", "Telefon", "Geburtsjahr", "Status", "E-Mail bestätigt", "Angemeldet am"],
       testers.map((t) => [
         t.firstName,
         t.lastName,
@@ -62,10 +61,8 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/admin/export
         COUNTRIES[t.country] ?? t.country,
         t.phone,
         t.birthYear,
-        t.interests.join(", "),
         TESTER_STATUS[t.status].label,
         t.emailVerifiedAt ? "ja" : "nein",
-        t.notifyNewProducts ? "ja" : "nein",
         formatDate(t.createdAt),
       ]),
     );

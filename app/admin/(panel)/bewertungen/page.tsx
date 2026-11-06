@@ -22,11 +22,11 @@ export default async function AdminReviewsPage({ searchParams }: PageProps<"/adm
     <div>
       <PageHeader
         title="Bewertungen"
-        description="Alle Rückmeldungen eurer Tester – intern, ungeschönt und exportierbar."
+        description="Alle Bewertungen eurer Tester. Sie werden nirgends veröffentlicht."
         actions={
           reviews.length > 0 && (
             <a href={`/admin/export/bewertungen${productId ? `?produkt=${productId}` : ""}`} className={buttonClass("secondary", "sm")}>
-              <Download /> CSV exportieren
+              <Download /> CSV
             </a>
           )
         }
@@ -34,20 +34,20 @@ export default async function AdminReviewsPage({ searchParams }: PageProps<"/adm
 
       {summary.length === 0 ? (
         <EmptyState icon={<Star />} title="Noch keine Bewertungen">
-          Sobald Tester ihre Produkte bewertet haben, findest du hier alle Rückmeldungen.
+          Sobald Tester ihr Paket bewertet haben, steht es hier.
         </EmptyState>
       ) : (
-        <div className="grid gap-8 xl:grid-cols-[22rem_1fr]">
+        <div className="grid gap-4 xl:grid-cols-[19rem_1fr]">
           <aside className="xl:sticky xl:top-8 xl:self-start">
-            <div className="overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-line/70">
+            <div className="overflow-hidden rounded-xl border border-line bg-white">
               <table className="w-full">
-                <thead className="border-b border-line/70 bg-cream/60">
+                <thead className="border-b border-line bg-cream/60">
                   <tr>
                     <th className={th}>Produkt</th>
                     <th className={cn(th, "text-right")}>Ø</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line/60">
+                <tbody className="divide-y divide-line">
                   <tr className={cn(!productId && "bg-coral-50/60")}>
                     <td className={td} colSpan={2}>
                       <Link href="/admin/bewertungen" className="font-semibold hover:text-coral-600">
@@ -62,11 +62,11 @@ export default async function AdminReviewsPage({ searchParams }: PageProps<"/adm
                           {s.title}
                         </Link>
                         <p className="text-xs text-muted">
-                          {s.total} Bewertungen · {Math.round((s.recommend / Math.max(1, s.total)) * 100)} % Empfehlung
+                          {s.total} Bewertungen · {Math.round((s.recommend / Math.max(1, s.total)) * 100)} % empfehlen
                         </p>
                       </td>
                       <td className={cn(td, "text-right")}>
-                        <span className="font-display text-lg font-semibold">{s.average?.toLocaleString("de-DE", { maximumFractionDigits: 1 })}</span>
+                        <span className="font-display text-base font-bold">{s.average?.toLocaleString("de-DE", { maximumFractionDigits: 1 })}</span>
                         <div>
                           <Stars value={s.average ?? 0} size="sm" />
                         </div>
@@ -78,7 +78,7 @@ export default async function AdminReviewsPage({ searchParams }: PageProps<"/adm
             </div>
           </aside>
 
-          <div className="grid content-start gap-4 lg:grid-cols-2">
+          <div className="grid content-start gap-3 lg:grid-cols-2">
             {reviews.map((r) => (
               <ReviewCard key={r.id} review={r} />
             ))}

@@ -9,16 +9,14 @@ export const metadata: Metadata = { title: "Agentur-Login", robots: { index: fal
 export default async function AdminLoginPage() {
   if (await getAdmin()) redirect("/admin");
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-ink px-4">
-      <div className="pointer-events-none absolute -top-40 -right-40 size-[36rem] rounded-full bg-coral-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 size-[30rem] rounded-full bg-lilac-500/20 blur-3xl" />
-      <div className="relative w-full max-w-sm">
+    <div className="flex min-h-dvh items-center justify-center bg-ink px-4">
+      <div className="w-full max-w-sm">
         <div className="flex justify-center">
           <Logo light />
         </div>
-        <div className="mt-8 rounded-[2rem] bg-white p-8 shadow-lift">
-          <h1 className="font-display text-2xl font-semibold">Agentur-Bereich</h1>
-          <p className="mt-1 text-sm text-muted">Melde dich an, um Produkte, Tester und Bewertungen zu verwalten.</p>
+        <div className="mt-6 rounded-2xl bg-white p-6">
+          <h1 className="font-display text-xl font-bold">Agentur-Login</h1>
+          <p className="mt-1 text-sm text-muted">Hier verwaltet ihr Produkte, Versand und Bewertungen.</p>
           <AdminLoginForm />
         </div>
       </div>

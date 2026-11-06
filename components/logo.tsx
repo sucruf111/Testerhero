@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 40 40" className={cn("size-9", className)} aria-hidden>
+    <svg viewBox="0 0 40 40" className={cn("size-8", className)} aria-hidden>
       <defs>
         <linearGradient id="th-grad" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#FF7C58" />
@@ -23,9 +23,9 @@ export function LogoMark({ className }: { className?: string }) {
 
 export function Logo({ className, light = false }: { className?: string; light?: boolean }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
+    <span className={cn("inline-flex items-center gap-2", className)}>
       <LogoMark />
-      <span className={cn("font-display text-[22px] font-bold tracking-tight", light ? "text-white" : "text-ink")}>
+      <span className={cn("font-display text-xl font-bold tracking-tight", light ? "text-white" : "text-ink")}>
         Tester<span className="text-coral-500">Hero</span>
       </span>
     </span>

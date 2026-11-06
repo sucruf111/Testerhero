@@ -1,6 +1,6 @@
 "use server";
 
-import { and, arrayContains, count, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -8,13 +8,9 @@ import { isBlobConfigured } from "@/lib/config";
 import { db, schema } from "@/lib/db";
 import type { ApplicationStatus } from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/auth/session";
-import { sendBulkEmail, sendEmail } from "@/lib/email";
-import {
-  acceptedTemplate,
-  newProductTemplate,
-  rejectedTemplate,
-  shippedTemplate,
-} from "@/lib/email/templates";
+import { distribute } from "@/lib/claims";
+import { sendEmail } from "@/lib/email";
+import { assignedTemplate, cancelledTemplate, shippedTemplate } from "@/lib/email/templates";
 import { slugify } from "@/lib/format";
 import { fieldErrorsOf, formValues, productSchema, type FormState } from "@/lib/validation";
 
@@ -50,7 +46,7 @@ export async function saveProductAction(_prev: FormState, formData: FormData): P
   const values = formValues(formData);
   const parsed = productSchema.safeParse(values);
   if (!parsed.success) {
-    return { error: "Bitte prüfe die markierten Felder.", fieldErrors: fieldErrorsOf(parsed.error), values };
+    return { error: "Bitte die markierten Felder prüfen.", fieldErrors: fieldErrorsOf(parsed.error), values };
   }
   const { retailPrice, ...data } = parsed.data;
   let imageUrl = data.imageUrl;
@@ -58,19 +54,19 @@ export async function saveProductAction(_prev: FormState, formData: FormData): P
   const file = formData.get("imageFile");
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("image/")) {
-      return { fieldErrors: { imageFile: ["Bitte lade eine Bilddatei hoch (JPG, PNG, WebP)."] }, values };
+      return { fieldErrors: { imageFile: ["Bitte ein Bild hochladen (JPG, PNG oder WebP)."] }, values };
     }
     if (file.size > 4 * 1024 * 1024) {
       return { fieldErrors: { imageFile: ["Das Bild darf maximal 4 MB groß sein."] }, values };
     }
     if (!isBlobConfigured()) {
-      return { fieldErrors: { imageFile: ["Bild-Upload ist nicht eingerichtet. Bitte eine Bild-URL angeben."] }, values };
+      return { fieldErrors: { imageFile: ["Bild-Upload ist noch nicht eingerichtet. Bitte eine Bild-URL eintragen."] }, values };
     }
     try {
       imageUrl = await uploadImage(file);
     } catch (error) {
       console.error(error);
-      return { fieldErrors: { imageFile: ["Upload fehlgeschlagen. Bitte erneut versuchen."] }, values };
+      return { fieldErrors: { imageFile: ["Upload hat nicht geklappt. Bitte noch mal versuchen."] }, values };
     }
   }
 
@@ -87,8 +83,11 @@ export async function saveProductAction(_prev: FormState, formData: FormData): P
     productId = created.id;
   }
 
+  // Aktive Produkte werden sofort an zufällige Tester verteilt
+  const result = data.status === "active" && productId ? await distribute(productId) : { assigned: 0 };
+
   revalidatePath("/", "layout");
-  redirect(`/admin/produkte/${productId}?gespeichert=1`);
+  redirect(`/admin/produkte/${productId}?gespeichert=1&verteilt=${result.assigned}`);
 }
 
 export async function deleteProductAction(formData: FormData) {
@@ -111,53 +110,22 @@ export async function setProductStatusAction(formData: FormData) {
   const id = z.uuid().parse(formData.get("id"));
   const status = z.enum(["draft", "active", "closed"]).parse(formData.get("status"));
   await db.update(schema.products).set({ status }).where(eq(schema.products.id, id));
+  const result = status === "active" ? await distribute(id) : { assigned: 0 };
   revalidatePath("/", "layout");
+  redirect(`/admin/produkte/${id}?verteilt=${result.assigned}`);
 }
 
-/** Informiert alle aktiven Tester (optional nur passende Interessen) über ein neues Produkt */
-export async function notifyTestersAction(_prev: FormState, formData: FormData): Promise<FormState> {
+/** Freie Plätze sofort neu auslosen (z. B. nachdem neue Tester dazugekommen sind) */
+export async function distributeNowAction(formData: FormData) {
   await requireAdmin();
-  const id = z.uuid().parse(formData.get("id"));
-  const onlyInterested = formData.get("onlyInterested") === "on";
-  const product = await db.query.products.findFirst({ where: eq(schema.products.id, id) });
-  if (!product) return { error: "Produkt nicht gefunden." };
-  if (product.status !== "active") {
-    return { error: "Bitte setze das Produkt zuerst auf „Bewerbung offen“." };
-  }
-
-  const recipients = await db
-    .select({ id: schema.testers.id, email: schema.testers.email, firstName: schema.testers.firstName })
-    .from(schema.testers)
-    .where(
-      and(
-        eq(schema.testers.status, "active"),
-        eq(schema.testers.notifyNewProducts, true),
-        isNotNull(schema.testers.emailVerifiedAt),
-        onlyInterested ? arrayContains(schema.testers.interests, [product.category]) : undefined,
-      ),
-    );
-
-  if (recipients.length === 0) {
-    return { error: "Es gibt aktuell keine passenden Tester mit aktivierten Benachrichtigungen." };
-  }
-
-  try {
-    const result = await sendBulkEmail(recipients, (r) => newProductTemplate(r, product));
-    await db.update(schema.products).set({ notifiedAt: new Date() }).where(eq(schema.products.id, id));
-    revalidatePath(`/admin/produkte/${id}`);
-    return {
-      ok: true,
-      message: result.simulated
-        ? `${result.sent} E-Mails vorbereitet (Testmodus: E-Mail-Versand ist noch nicht eingerichtet).`
-        : `${result.sent} Tester wurden per E-Mail informiert.`,
-    };
-  } catch (error) {
-    console.error(error);
-    return { error: "Der Versand ist fehlgeschlagen. Bitte prüfe die E-Mail-Einstellungen." };
-  }
+  const id = formData.get("id");
+  const productId = typeof id === "string" && id ? z.uuid().parse(id) : undefined;
+  const result = await distribute(productId);
+  revalidatePath("/admin", "layout");
+  redirect(`${productId ? `/admin/produkte/${productId}` : "/admin"}?verteilt=${result.assigned}`);
 }
 
-/* ───────────── Bewerbungen ───────────── */
+/* ───────────── Pakete (Zuteilungen) ───────────── */
 
 type AppWithRelations = NonNullable<Awaited<ReturnType<typeof loadApplications>>>[number];
 
@@ -169,16 +137,14 @@ function loadApplications(ids: string[]) {
 }
 
 async function notify(app: AppWithRelations, status: ApplicationStatus) {
-  const { tester, product } = app;
+  const { tester } = app;
   if (tester.status !== "active") return;
-  if (status === "accepted") await sendEmail(tester, acceptedTemplate(tester, product));
-  if (status === "rejected") await sendEmail(tester, rejectedTemplate(tester, product));
-  if (status === "shipped") {
-    await sendEmail(tester, shippedTemplate(tester, product, app));
-  }
+  if (status === "accepted") await sendEmail(tester, assignedTemplate(tester));
+  if (status === "rejected") await sendEmail(tester, cancelledTemplate(tester));
+  if (status === "shipped") await sendEmail(tester, shippedTemplate(tester, app));
 }
 
-const statusSchema = z.enum(["pending", "accepted", "rejected", "shipped", "received", "reviewed"]);
+const statusSchema = z.enum(["accepted", "rejected", "shipped", "received"]);
 
 async function applyStatus(
   ids: string[],
@@ -190,12 +156,11 @@ async function applyStatus(
   for (const app of apps) {
     // Abgemeldete/gesperrte Tester nicht mehr auswählen oder beliefern
     if (app.tester.status !== "active" && (status === "accepted" || status === "shipped")) continue;
-    if (app.status === "withdrawn" && status !== "pending") continue;
+    if (app.status === "withdrawn") continue;
     if (app.status === status && status !== "shipped") continue;
 
     const patch: Partial<typeof schema.applications.$inferInsert> = { status };
     if (status === "accepted" || status === "rejected") patch.decidedAt = now;
-    if (status === "pending") patch.decidedAt = null;
     if (status === "shipped") {
       patch.shippedAt = app.shippedAt ?? now;
       if (extra.carrier !== undefined) patch.carrier = extra.carrier;
@@ -209,8 +174,8 @@ async function applyStatus(
       await notify({ ...app, ...patch } as AppWithRelations, status);
     }
   }
-  const productIds = [...new Set(apps.map((a) => a.productId))];
-  for (const pid of productIds) revalidatePath(`/admin/produkte/${pid}`);
+  // Stornierte Plätze gehen direkt an andere Tester
+  if (status === "rejected") await distribute();
   revalidatePath("/admin", "layout");
 }
 
@@ -258,6 +223,7 @@ export async function setTesterStatusAction(formData: FormData) {
       .set({ status: "withdrawn" })
       .where(and(eq(schema.applications.testerId, id), inArray(schema.applications.status, ["pending", "accepted"])));
   }
+  await distribute();
   revalidatePath("/admin", "layout");
 }
 
@@ -265,6 +231,31 @@ export async function deleteTesterAction(formData: FormData) {
   await requireAdmin();
   const id = z.uuid().parse(formData.get("testerId"));
   await db.delete(schema.testers).where(eq(schema.testers.id, id));
+  await distribute();
   revalidatePath("/admin", "layout");
   redirect("/admin/tester?geloescht=1");
+}
+
+/* ───────────── Einstellungen ───────────── */
+
+const settingsSchema = z.object({
+  maxClaimsPerWindow: z.coerce.number().int().min(1, "Mindestens 1.").max(100, "Höchstens 100."),
+  claimWindowDays: z.coerce.number().int().min(1, "Mindestens 1 Tag.").max(365, "Höchstens 365 Tage."),
+  maxOpenTests: z.coerce.number().int().min(1, "Mindestens 1.").max(50, "Höchstens 50."),
+});
+
+export async function saveSettingsAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const values = formValues(formData);
+  const parsed = settingsSchema.safeParse(values);
+  if (!parsed.success) {
+    return { error: "Bitte die markierten Felder prüfen.", fieldErrors: fieldErrorsOf(parsed.error), values };
+  }
+  await db
+    .insert(schema.settings)
+    .values({ id: 1, ...parsed.data })
+    .onConflictDoUpdate({ target: schema.settings.id, set: parsed.data });
+  await distribute();
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Gespeichert." };
 }

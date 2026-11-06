@@ -1,5 +1,5 @@
 /**
- * Legt Demo-Daten an (Produkte, Tester, Bewerbungen, Bewertungen).
+ * Legt Demo-Daten an (Produkte, Tester, Pakete, Bewertungen).
  * Nur für lokale Entwicklung / Vorschau-Umgebungen gedacht:  npm run db:seed
  * Alle Demo-Tester haben das Passwort "tester123".
  */
@@ -108,7 +108,7 @@ async function main() {
   const testers = await db
     .insert(schema.testers)
     .values(
-      people.map(([firstName, lastName, street, postalCode, city, birthYear, interests], i) => ({
+      people.map(([firstName, lastName, street, postalCode, city, birthYear], i) => ({
         email: `${firstName}.${lastName}@example.com`.toLowerCase().replace(/ü/g, "ue").replace(/ö/g, "oe").replace(/ä/g, "ae"),
         passwordHash,
         firstName,
@@ -117,12 +117,10 @@ async function main() {
         postalCode,
         city,
         birthYear,
-        interests: [...interests],
         emailVerifiedAt: daysAgo(40 - i),
         createdAt: daysAgo(40 - i),
         status: i === 7 ? ("unsubscribed" as const) : ("active" as const),
         unsubscribedAt: i === 7 ? daysAgo(2) : null,
-        notifyNewProducts: i !== 7,
       })),
     )
     .returning();
@@ -132,17 +130,14 @@ async function main() {
   const apps = await db
     .insert(schema.applications)
     .values([
-      { productId: milk.id, testerId: T[0].id, status: "pending", motivation: "Ich trinke jeden Morgen Cappuccino und nutze dafür Haferdrink – bin gespannt, wie gut der Schaum damit wird!" },
-      { productId: milk.id, testerId: T[3].id, status: "pending", motivation: "Wir sind eine fünfköpfige Familie, bei uns läuft die Kaffeemaschine quasi durchgehend." },
-      { productId: milk.id, testerId: T[6].id, status: "accepted", decidedAt: daysAgo(1), motivation: "Ich liebe Latte Macchiato und teste gerne neue Küchengeräte." },
-      { productId: headphones.id, testerId: T[1].id, status: "accepted", decidedAt: daysAgo(2), motivation: "Pendle täglich 1 Stunde mit der Bahn – Noise Cancelling wäre ein Traum." },
+      { productId: milk.id, testerId: T[6].id, status: "accepted", decidedAt: daysAgo(1) },
+      { productId: milk.id, testerId: T[3].id, status: "accepted", decidedAt: daysAgo(1) },
+      { productId: headphones.id, testerId: T[1].id, status: "accepted", decidedAt: daysAgo(2) },
       { productId: headphones.id, testerId: T[5].id, status: "shipped", decidedAt: daysAgo(6), shippedAt: daysAgo(3), carrier: "DHL", trackingNumber: "00340434161094042557" },
-      { productId: headphones.id, testerId: T[2].id, status: "pending" },
-      { productId: serum.id, testerId: T[2].id, status: "pending", motivation: "Ich habe Mischhaut und suche schon lange ein gutes Vitamin-C-Serum." },
+      { productId: serum.id, testerId: T[2].id, status: "received", decidedAt: daysAgo(8), shippedAt: daysAgo(6), receivedAt: daysAgo(4), carrier: "Hermes" },
       { productId: yoga.id, testerId: T[4].id, status: "reviewed", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(25), carrier: "Hermes" },
       { productId: yoga.id, testerId: T[1].id, status: "reviewed", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(24), carrier: "Hermes" },
       { productId: yoga.id, testerId: T[3].id, status: "received", decidedAt: daysAgo(30), shippedAt: daysAgo(27), receivedAt: daysAgo(23), carrier: "Hermes" },
-      { productId: yoga.id, testerId: T[0].id, status: "rejected", decidedAt: daysAgo(30) },
     ])
     .returning();
 
@@ -172,7 +167,11 @@ async function main() {
     },
   ]);
 
-  console.log(`✅ Demo-Daten angelegt: ${products.length} Produkte, ${testers.length} Tester, ${apps.length} Bewerbungen.`);
+  // Adress-Schlüssel wie in der App berechnen
+  await client`update testers set address_key = country || '|' || trim(postal_code) || '|' || regexp_replace(regexp_replace(lower(street), 'stra(ss|ß)e', 'str', 'g'), '[^a-z0-9äöüß]', '', 'g')`;
+  await client`insert into settings (id) values (1) on conflict do nothing`;
+
+  console.log(`✅ Demo-Daten angelegt: ${products.length} Produkte, ${testers.length} Tester, ${apps.length} Pakete.`);
   console.log("   Demo-Login Tester: lena.mueller@example.com / tester123");
   await client.end();
 }

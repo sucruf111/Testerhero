@@ -1,5 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { verifyUnsubscribeToken } from "@/lib/auth/tokens";
+import { distribute } from "@/lib/claims";
 import { unsubscribeTester } from "@/lib/unsubscribe";
 
 /**
@@ -9,7 +10,8 @@ import { unsubscribeTester } from "@/lib/unsubscribe";
 export async function POST(request: NextRequest) {
   const data = await verifyUnsubscribeToken(request.nextUrl.searchParams.get("token"));
   if (!data) return NextResponse.json({ ok: false }, { status: 400 });
-  await unsubscribeTester(data.testerId, "all");
+  await unsubscribeTester(data.testerId);
+  after(() => distribute());
   return NextResponse.json({ ok: true });
 }
 

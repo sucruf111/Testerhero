@@ -2,17 +2,18 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/auth/flows";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { endTesterSession, getCurrentTester, requireTester } from "@/lib/auth/session";
 import { verifyUnsubscribeToken } from "@/lib/auth/tokens";
-import { isDeadlinePassed } from "@/lib/format";
+import { addressKey } from "@/lib/address";
+import { distribute } from "@/lib/claims";
 import { unsubscribeTester } from "@/lib/unsubscribe";
 import {
   addressSchema,
-  applySchema,
   emailSchema,
   fieldErrorsOf,
   formValues,
@@ -21,53 +22,7 @@ import {
   type FormState,
 } from "@/lib/validation";
 
-/* ───────────── Bewerben ───────────── */
-
-export async function applyAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const tester = await requireTester();
-  const parsed = applySchema.safeParse(formValues(formData));
-  if (!parsed.success) return { error: "Ungültige Anfrage.", fieldErrors: fieldErrorsOf(parsed.error) };
-
-  if (tester.status !== "active") {
-    return { error: "Dein Konto ist derzeit nicht aktiv. Du kannst dich deshalb nicht bewerben." };
-  }
-  if (!tester.emailVerifiedAt) {
-    return { error: "Bitte bestätige zuerst deine E-Mail-Adresse – den Link findest du in deinem Postfach." };
-  }
-
-  const product = await db.query.products.findFirst({
-    where: eq(schema.products.id, parsed.data.productId),
-  });
-  if (!product || product.status !== "active" || isDeadlinePassed(product.applicationDeadline)) {
-    return { error: "Für dieses Produkt sind leider keine Bewerbungen mehr möglich." };
-  }
-
-  const existing = await db.query.applications.findFirst({
-    where: and(
-      eq(schema.applications.productId, product.id),
-      eq(schema.applications.testerId, tester.id),
-    ),
-  });
-  if (existing && existing.status !== "withdrawn") {
-    return { error: "Du hast dich für dieses Produkt bereits beworben." };
-  }
-
-  if (existing) {
-    await db
-      .update(schema.applications)
-      .set({ status: "pending", motivation: parsed.data.motivation, decidedAt: null })
-      .where(eq(schema.applications.id, existing.id));
-  } else {
-    await db
-      .insert(schema.applications)
-      .values({ productId: product.id, testerId: tester.id, motivation: parsed.data.motivation })
-      .onConflictDoNothing();
-  }
-
-  revalidatePath(`/produkte/${product.slug}`);
-  revalidatePath("/konto");
-  return { ok: true, message: "Deine Bewerbung ist eingegangen! Wir melden uns per E-Mail, sobald die Auswahl steht." };
-}
+/* ───────────── Pakete ───────────── */
 
 async function ownApplication(applicationId: string, testerId: string) {
   return db.query.applications.findFirst({
@@ -76,14 +31,16 @@ async function ownApplication(applicationId: string, testerId: string) {
   });
 }
 
+/** Paket ablehnen, solange es noch nicht verschickt wurde. Der Platz wird neu ausgelost. */
 export async function withdrawApplicationAction(formData: FormData) {
   const tester = await requireTester();
   const app = await ownApplication(String(formData.get("applicationId")), tester.id);
-  if (app && app.status === "pending") {
+  if (app && (app.status === "pending" || app.status === "accepted")) {
     await db
       .update(schema.applications)
       .set({ status: "withdrawn" })
       .where(eq(schema.applications.id, app.id));
+    after(() => distribute());
   }
   revalidatePath("/konto");
 }
@@ -91,7 +48,7 @@ export async function withdrawApplicationAction(formData: FormData) {
 export async function confirmReceivedAction(formData: FormData) {
   const tester = await requireTester();
   const app = await ownApplication(String(formData.get("applicationId")), tester.id);
-  if (app && (app.status === "shipped" || app.status === "accepted")) {
+  if (app && app.status === "shipped") {
     await db
       .update(schema.applications)
       .set({ status: "received", receivedAt: new Date() })
@@ -107,11 +64,11 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   const values = formValues(formData);
   const parsed = reviewSchema.safeParse(values);
   if (!parsed.success) {
-    return { error: "Bitte prüfe deine Eingaben.", fieldErrors: fieldErrorsOf(parsed.error), values };
+    return { error: "Bitte schau dir die markierten Felder noch mal an.", fieldErrors: fieldErrorsOf(parsed.error), values };
   }
   const app = await ownApplication(parsed.data.applicationId, tester.id);
-  if (!app || !["shipped", "received"].includes(app.status)) {
-    return { error: "Für diesen Test kann (noch) keine Bewertung abgegeben werden.", values };
+  if (!app || app.status !== "received") {
+    return { error: "Für diesen Test kannst du noch keine Bewertung abgeben.", values };
   }
 
   await db.transaction(async (tx) => {
@@ -135,6 +92,8 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
       .where(eq(schema.applications.id, app.id));
   });
 
+  // Ein Test weniger offen: vielleicht ist jetzt wieder Platz für ein neues Paket
+  after(() => distribute());
   revalidatePath("/konto");
   redirect("/konto?bewertet=1");
 }
@@ -148,7 +107,7 @@ export async function updateProfileAction(_prev: FormState, formData: FormData):
   const email = emailSchema.safeParse(values.email);
   if (!parsed.success || !email.success) {
     return {
-      error: "Bitte prüfe deine Eingaben.",
+      error: "Bitte schau dir die markierten Felder noch mal an.",
       fieldErrors: {
         ...(parsed.success ? {} : fieldErrorsOf(parsed.error)),
         ...(email.success ? {} : { email: ["Bitte gib eine gültige E-Mail-Adresse ein."] }),
@@ -164,7 +123,7 @@ export async function updateProfileAction(_prev: FormState, formData: FormData):
       columns: { id: true },
     });
     if (taken) {
-      return { fieldErrors: { email: ["Diese E-Mail-Adresse wird bereits verwendet."] }, values };
+      return { fieldErrors: { email: ["Diese E-Mail-Adresse wird schon für ein anderes Konto benutzt."] }, values };
     }
   }
 
@@ -172,8 +131,8 @@ export async function updateProfileAction(_prev: FormState, formData: FormData):
     .update(schema.testers)
     .set({
       ...parsed.data,
+      addressKey: addressKey(parsed.data.street, parsed.data.postalCode, parsed.data.country),
       email: email.data,
-      notifyNewProducts: formData.get("notifyNewProducts") === "on",
       ...(emailChanged ? { emailVerifiedAt: null } : {}),
     })
     .where(eq(schema.testers.id, tester.id))
@@ -185,8 +144,8 @@ export async function updateProfileAction(_prev: FormState, formData: FormData):
   return {
     ok: true,
     message: emailChanged
-      ? "Gespeichert! Bitte bestätige deine neue E-Mail-Adresse über den Link, den wir dir geschickt haben."
-      : "Deine Angaben wurden gespeichert.",
+      ? "Gespeichert. Wir haben dir einen Link an die neue E-Mail-Adresse geschickt. Bitte klick ihn an."
+      : "Gespeichert.",
   };
 }
 
@@ -194,7 +153,7 @@ export async function changePasswordAction(_prev: FormState, formData: FormData)
   const tester = await requireTester();
   const current = String(formData.get("currentPassword") ?? "");
   if (!(await verifyPassword(current, tester.passwordHash))) {
-    return { fieldErrors: { currentPassword: ["Das aktuelle Passwort ist nicht korrekt."] } };
+    return { fieldErrors: { currentPassword: ["Das aktuelle Passwort stimmt nicht."] } };
   }
   const next = passwordSchema.safeParse(formData.get("newPassword"));
   if (!next.success) return { fieldErrors: { newPassword: next.error.issues.map((i) => i.message) } };
@@ -202,14 +161,13 @@ export async function changePasswordAction(_prev: FormState, formData: FormData)
     .update(schema.testers)
     .set({ passwordHash: await hashPassword(next.data) })
     .where(eq(schema.testers.id, tester.id));
-  return { ok: true, message: "Dein Passwort wurde geändert." };
+  return { ok: true, message: "Dein Passwort ist geändert." };
 }
 
 /* ───────────── Abmelden / Reaktivieren / Löschen ───────────── */
 
 /** Abmeldung über den Link aus einer E-Mail (ohne Login) oder eingeloggt */
 export async function unsubscribeAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const mode = formData.get("mode") === "emails" ? "emails" : "all";
   const token = formData.get("token");
   let testerId: string | null = null;
 
@@ -219,18 +177,13 @@ export async function unsubscribeAction(_prev: FormState, formData: FormData): P
     testerId = (await getCurrentTester())?.id ?? null;
   }
   if (!testerId) {
-    return { error: "Der Abmeldelink ist ungültig. Bitte melde dich an, um dich abzumelden." };
+    return { error: "Der Link funktioniert leider nicht. Melde dich an, dann kannst du dich im Profil abmelden." };
   }
 
   // bewusst kein revalidatePath: die Seite soll die Bestätigung zeigen statt neu zu rendern
-  await unsubscribeTester(testerId, mode);
-  return {
-    ok: true,
-    message:
-      mode === "emails"
-        ? "Erledigt – du bekommst keine E-Mails mehr zu neuen Produkttests."
-        : "Du wurdest abgemeldet. Du erhältst ab sofort keine Produkte und keine E-Mails mehr von uns.",
-  };
+  await unsubscribeTester(testerId);
+  after(() => distribute());
+  return { ok: true, message: "Erledigt. Du bist abgemeldet und bekommst keine Pakete und keine E-Mails mehr von uns." };
 }
 
 export async function reactivateAction() {
@@ -238,8 +191,9 @@ export async function reactivateAction() {
   if (tester.status === "unsubscribed") {
     await db
       .update(schema.testers)
-      .set({ status: "active", unsubscribedAt: null, notifyNewProducts: true })
+      .set({ status: "active", unsubscribedAt: null })
       .where(eq(schema.testers.id, tester.id));
+    after(() => distribute());
   }
   revalidatePath("/konto", "layout");
   redirect("/konto?reaktiviert=1");
@@ -249,9 +203,10 @@ export async function deleteAccountAction(_prev: FormState, formData: FormData):
   const tester = await requireTester();
   const password = String(formData.get("password") ?? "");
   if (!(await verifyPassword(password, tester.passwordHash))) {
-    return { fieldErrors: { password: ["Das Passwort ist nicht korrekt."] } };
+    return { fieldErrors: { password: ["Das Passwort stimmt nicht."] } };
   }
   await db.delete(schema.testers).where(eq(schema.testers.id, tester.id));
   await endTesterSession();
+  after(() => distribute());
   redirect("/?konto=geloescht");
 }

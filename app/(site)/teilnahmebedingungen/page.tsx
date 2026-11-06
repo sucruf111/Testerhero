@@ -1,40 +1,52 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/site/legal-page";
+import { getSettings } from "@/lib/claims";
 
 export const metadata: Metadata = { title: "Teilnahmebedingungen" };
 
-export default function TeilnahmebedingungenPage() {
+export default async function TeilnahmebedingungenPage() {
+  const settings = await getSettings();
   return (
     <LegalPage title="Teilnahmebedingungen">
       <section>
-        <h2>1. Teilnahme</h2>
-        <p>Teilnehmen können volljährige Personen mit Wohnsitz in Deutschland, Österreich oder der Schweiz. Die Teilnahme ist kostenlos und freiwillig.</p>
-      </section>
-      <section>
-        <h2>2. Bewerbung und Auswahl</h2>
+        <h2>1. Wer mitmachen kann</h2>
         <p>
-          Du kannst dich für ausgeschriebene Produkttests bewerben. Die Auswahl trifft [Name der Agentur] nach eigenem Ermessen. Ein Anspruch auf Teilnahme an
-          einem bestimmten Test besteht nicht.
+          Mitmachen kann jede Person ab 18 Jahren mit einer Lieferadresse in Deutschland, Österreich oder der Schweiz. Die Teilnahme ist
+          kostenlos. Pro Person ist nur ein Konto erlaubt.
         </p>
       </section>
       <section>
-        <h2>3. Testprodukt</h2>
-        <p>[Bitte ergänzen: Darf das Produkt nach dem Test behalten werden? Gibt es Ausnahmen/Rücksendungen?]</p>
+        <h2>2. Wie die Pakete verteilt werden</h2>
+        <p>
+          Wenn es ein neues Produkt gibt, losen wir per Zufall aus, wer es bekommt. Mitlosen kann, wer angemeldet ist und seine E-Mail-Adresse
+          bestätigt hat. Einen Anspruch auf ein Paket gibt es nicht.
+        </p>
+        <ul>
+          <li>
+            Pro Person gibt es höchstens {settings.maxClaimsPerWindow} Pakete in {settings.claimWindowDays} Tagen.
+          </li>
+          <li>Wer {settings.maxOpenTests === 1 ? "ein Paket" : `${settings.maxOpenTests} Pakete`} noch nicht bewertet hat, wird erst danach wieder ausgelost.</li>
+          <li>Niemand bekommt dasselbe Produkt zweimal. Das gilt auch für Personen mit derselben Adresse.</li>
+        </ul>
       </section>
       <section>
-        <h2>4. Bewertung</h2>
+        <h2>3. Das Produkt</h2>
+        <p>Das Produkt im Paket darfst du nach dem Test behalten. Der Versand ist für dich kostenlos.</p>
+      </section>
+      <section>
+        <h2>4. Deine Bewertung</h2>
         <p>
-          Ausgewählte Tester:innen verpflichten sich, das Produkt sorgfältig zu testen und innerhalb von ca. zwei Wochen nach Erhalt eine ehrliche Bewertung über
-          TesterHero abzugeben. Bewertungen werden nicht öffentlich veröffentlicht und dienen ausschließlich der internen Produktverbesserung.
+          Wenn du ein Paket bekommst, testest du das Produkt und schreibst innerhalb von etwa zwei Wochen nach Erhalt eine ehrliche Bewertung
+          hier auf der Seite. Die Bewertung wird nicht veröffentlicht. Sie geht nur an den Hersteller.
         </p>
       </section>
       <section>
-        <h2>5. Abmeldung</h2>
-        <p>Du kannst dich jederzeit über den Link in jeder E-Mail oder in deinem Profil abmelden und dein Konto löschen.</p>
+        <h2>5. Abmelden</h2>
+        <p>Du kannst dich jederzeit über den Link in unseren E-Mails oder in deinem Konto abmelden und dein Konto löschen.</p>
       </section>
       <section>
-        <h2>6. Ausschluss</h2>
-        <p>Bei Missbrauch, falschen Angaben oder wiederholt fehlenden Bewertungen kann ein Konto gesperrt werden.</p>
+        <h2>6. Sperrung</h2>
+        <p>Wer falsche Angaben macht, mehrere Konten anlegt oder wiederholt nicht bewertet, kann gesperrt werden.</p>
       </section>
     </LegalPage>
   );

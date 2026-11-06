@@ -1,5 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
+import { after } from "next/server";
+import { distribute } from "@/lib/claims";
 import { getBaseUrl } from "@/lib/config";
 import { db, schema } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
@@ -23,6 +25,8 @@ export async function confirmEmail(token: string | null) {
       .update(schema.testers)
       .set({ emailVerifiedAt: new Date() })
       .where(eq(schema.testers.id, tester.id));
+    // Neue Tester können sofort bei freien Plätzen mit ausgelost werden
+    after(() => distribute());
   }
   return { ok: true as const, firstName: tester.firstName };
 }

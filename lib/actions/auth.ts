@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { addressKey } from "@/lib/address";
 import { getBaseUrl } from "@/lib/config";
 import { db, schema } from "@/lib/db";
 import { hashPassword, safeEqual, verifyPassword } from "@/lib/auth/password";
@@ -38,16 +39,11 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   const values = formValues(formData, ["interests"]);
   const parsed = registerSchema.safeParse({
     ...values,
-    notifyNewProducts: formData.get("notifyNewProducts") === "on",
     consent: formData.get("consent") === "on",
   });
-  const echo = {
-    ...values,
-    password: "",
-    notifyNewProducts: formData.get("notifyNewProducts") === "on" ? "on" : "off",
-  };
+  const echo = { ...values, password: "", consent: formData.get("consent") === "on" ? "on" : "" };
   if (!parsed.success) {
-    return { error: "Bitte prüfe deine Eingaben.", fieldErrors: fieldErrorsOf(parsed.error), values: echo };
+    return { error: "Bitte schau dir die markierten Felder noch mal an.", fieldErrors: fieldErrorsOf(parsed.error), values: echo };
   }
   const data = parsed.data;
 
@@ -57,8 +53,8 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   });
   if (existing) {
     return {
-      error: "Für diese E-Mail-Adresse gibt es bereits ein Konto.",
-      fieldErrors: { email: ["Diese E-Mail-Adresse ist bereits registriert. Melde dich stattdessen an."] },
+      error: "Mit dieser E-Mail-Adresse gibt es schon ein Konto.",
+      fieldErrors: { email: ["Diese Adresse ist schon registriert. Melde dich einfach an."] },
       values: echo,
     };
   }
@@ -75,10 +71,9 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
       postalCode: data.postalCode,
       city: data.city,
       country: data.country,
+      addressKey: addressKey(data.street, data.postalCode, data.country),
       phone: data.phone,
       birthYear: data.birthYear,
-      interests: data.interests,
-      notifyNewProducts: data.notifyNewProducts,
       consentAt: new Date(),
       lastLoginAt: new Date(),
     })
@@ -95,14 +90,14 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   const parsed = loginSchema.safeParse(formValues(formData));
   const echo = { email: String(formData.get("email") ?? "") };
   if (!parsed.success) {
-    return { error: "Bitte prüfe deine Eingaben.", fieldErrors: fieldErrorsOf(parsed.error), values: echo };
+    return { error: "Bitte schau dir die markierten Felder noch mal an.", fieldErrors: fieldErrorsOf(parsed.error), values: echo };
   }
   const tester = await db.query.testers.findFirst({
     where: eq(schema.testers.email, parsed.data.email),
   });
   const valid = tester ? await verifyPassword(parsed.data.password, tester.passwordHash) : false;
   if (!tester || !valid) {
-    return { error: "E-Mail-Adresse oder Passwort ist nicht korrekt.", values: echo };
+    return { error: "E-Mail-Adresse oder Passwort stimmt nicht.", values: echo };
   }
   await db.update(schema.testers).set({ lastLoginAt: new Date() }).where(eq(schema.testers.id, tester.id));
   await startTesterSession(tester.id);
@@ -119,9 +114,9 @@ export async function logoutAction() {
 export async function resendVerificationAction(_prev: FormState): Promise<FormState> {
   const tester = await getCurrentTester();
   if (!tester) redirect("/anmelden");
-  if (tester.emailVerifiedAt) return { ok: true, message: "Deine E-Mail-Adresse ist bereits bestätigt." };
+  if (tester.emailVerifiedAt) return { ok: true, message: "Deine E-Mail-Adresse ist schon bestätigt." };
   await sendVerificationEmail(tester);
-  return { ok: true, message: `Wir haben dir eine neue Bestätigungs-E-Mail an ${tester.email} geschickt.` };
+  return { ok: true, message: `Wir haben dir den Link noch mal an ${tester.email} geschickt.` };
 }
 
 /* ───────────── Passwort vergessen ───────────── */
@@ -140,21 +135,21 @@ export async function requestPasswordResetAction(_prev: FormState, formData: For
   // Immer dieselbe Antwort – verrät nicht, ob ein Konto existiert
   return {
     ok: true,
-    message: "Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link zum Zurücksetzen geschickt.",
+    message: "Wenn es ein Konto mit dieser Adresse gibt, bekommst du gleich eine E-Mail mit einem Link.",
   };
 }
 
 export async function resetPasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const data = await verifyResetToken(String(formData.get("token") ?? ""), currentPasswordHash);
   if (!data) {
-    return { error: "Der Link ist abgelaufen oder wurde bereits verwendet. Bitte fordere einen neuen an." };
+    return { error: "Der Link ist abgelaufen oder wurde schon benutzt. Fordere bitte einen neuen an." };
   }
   const password = passwordSchema.safeParse(formData.get("password"));
   if (!password.success) {
     return { fieldErrors: { password: password.error.issues.map((i) => i.message) } };
   }
   if (formData.get("password") !== formData.get("passwordConfirm")) {
-    return { fieldErrors: { passwordConfirm: ["Die Passwörter stimmen nicht überein."] } };
+    return { fieldErrors: { passwordConfirm: ["Die beiden Passwörter sind nicht gleich."] } };
   }
   await db
     .update(schema.testers)
@@ -173,13 +168,13 @@ export async function adminLoginAction(_prev: FormState, formData: FormData): Pr
   const expectedPassword = process.env.ADMIN_PASSWORD ?? "";
 
   if (!expectedEmail || !expectedPassword) {
-    return { error: "Der Admin-Zugang ist noch nicht eingerichtet (ADMIN_EMAIL / ADMIN_PASSWORD fehlen)." };
+    return { error: "Der Zugang ist noch nicht eingerichtet. ADMIN_EMAIL und ADMIN_PASSWORD fehlen." };
   }
   const ok = safeEqual(email, expectedEmail) && safeEqual(password, expectedPassword);
   if (!ok) {
     // kleine Verzögerung gegen Brute-Force
     await new Promise((r) => setTimeout(r, 600));
-    return { error: "Zugangsdaten sind nicht korrekt.", values: { email } };
+    return { error: "E-Mail oder Passwort stimmt nicht.", values: { email } };
   }
   await startAdminSession(email);
   redirect("/admin");

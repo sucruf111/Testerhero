@@ -29,13 +29,13 @@ export const APPLICATION_STATUS: Record<
   ApplicationStatus,
   { label: string; testerLabel: string; tone: Tone }
 > = {
-  pending: { label: "Neu", testerLabel: "Beworben", tone: "amber" },
-  accepted: { label: "Ausgewählt", testerLabel: "Du bist dabei!", tone: "violet" },
-  shipped: { label: "Versendet", testerLabel: "Unterwegs zu dir", tone: "sky" },
-  received: { label: "Erhalten", testerLabel: "Bitte bewerten", tone: "coral" },
-  reviewed: { label: "Bewertet", testerLabel: "Bewertet – danke!", tone: "green" },
-  rejected: { label: "Abgelehnt", testerLabel: "Diesmal nicht dabei", tone: "slate" },
-  withdrawn: { label: "Zurückgezogen", testerLabel: "Zurückgezogen", tone: "slate" },
+  pending: { label: "Wartet", testerLabel: "Wartet", tone: "amber" },
+  accepted: { label: "Zu versenden", testerLabel: "Platz gesichert", tone: "violet" },
+  shipped: { label: "Versendet", testerLabel: "Unterwegs", tone: "sky" },
+  received: { label: "Angekommen", testerLabel: "Bitte bewerten", tone: "coral" },
+  reviewed: { label: "Bewertet", testerLabel: "Bewertet", tone: "green" },
+  rejected: { label: "Storniert", testerLabel: "Storniert", tone: "slate" },
+  withdrawn: { label: "Freigegeben", testerLabel: "Freigegeben", tone: "slate" },
 };
 
 /** Status, die einen vergebenen Testplatz bedeuten */
@@ -43,8 +43,8 @@ export const SLOT_STATUSES: ApplicationStatus[] = ["accepted", "shipped", "recei
 
 export const PRODUCT_STATUS: Record<ProductStatus, { label: string; tone: Tone }> = {
   draft: { label: "Entwurf", tone: "slate" },
-  active: { label: "Bewerbung offen", tone: "green" },
-  closed: { label: "Abgeschlossen", tone: "violet" },
+  active: { label: "Aktiv", tone: "green" },
+  closed: { label: "Beendet", tone: "violet" },
 };
 
 export const TESTER_STATUS: Record<TesterStatus, { label: string; tone: Tone }> = {

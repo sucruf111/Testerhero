@@ -14,27 +14,25 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell
       title="Passwort vergessen?"
-      subtitle="Kein Problem. Wir schicken dir einen Link, mit dem du ein neues Passwort festlegen kannst."
+      subtitle="Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link für ein neues Passwort."
       footer={
         <Link href="/anmelden" className="font-semibold text-coral-600 hover:text-coral-700">
-          Zurück zur Anmeldung
+          Zurück zum Einloggen
         </Link>
       }
     >
       {state.ok ? (
-        <div className="text-center">
-          <span className="inline-grid size-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
-            <MailCheck className="size-7" />
-          </span>
-          <p className="mt-4 text-ink-soft">{state.message}</p>
+        <div className="flex gap-3">
+          <MailCheck className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+          <p className="text-ink-soft">{state.message}</p>
         </div>
       ) : (
-        <form action={action} className="space-y-5">
+        <form action={action} className="space-y-4">
           <Field label="E-Mail-Adresse" name="email" error={state.fieldErrors?.email}>
-            <Input name="email" type="email" autoComplete="email" required error={state.fieldErrors?.email} placeholder="du@beispiel.de" />
+            <Input name="email" type="email" autoComplete="email" required error={state.fieldErrors?.email} />
           </Field>
-          <SubmitButton size="lg" className="w-full" pendingText="Wird gesendet …">
-            Link anfordern
+          <SubmitButton size="lg" className="w-full" pendingText="Einen Moment …">
+            Link schicken
           </SubmitButton>
         </form>
       )}

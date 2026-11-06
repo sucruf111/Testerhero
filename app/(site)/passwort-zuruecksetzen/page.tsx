@@ -12,13 +12,13 @@ export default async function ResetPasswordPage({ searchParams }: PageProps<"/pa
   const valid = await isResetTokenValid(value);
 
   return (
-    <AuthShell title="Neues Passwort" subtitle={valid ? "Wähle ein neues Passwort mit mindestens 8 Zeichen." : undefined}>
+    <AuthShell title="Neues Passwort" subtitle={valid ? "Mindestens 8 Zeichen." : undefined}>
       {valid && value ? (
         <ResetForm token={value} />
       ) : (
-        <div className="text-center">
-          <p className="text-ink-soft">Dieser Link ist abgelaufen oder wurde bereits verwendet.</p>
-          <LinkButton href="/passwort-vergessen" className="mt-6">
+        <div>
+          <p className="text-ink-soft">Der Link ist abgelaufen oder wurde schon benutzt.</p>
+          <LinkButton href="/passwort-vergessen" className="mt-4">
             Neuen Link anfordern
           </LinkButton>
         </div>

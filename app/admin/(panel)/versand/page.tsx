@@ -33,22 +33,22 @@ export default async function ShippingPage() {
     <div>
       <PageHeader
         title="Versand"
-        description="Alle ausgewählten Tester, deren Produkt noch verschickt werden muss – mit Lieferadresse."
+        description="Diese Pakete wurden ausgelost und müssen noch verschickt werden."
         actions={
           queue.length > 0 && (
             <a href="/admin/export/versand" className={buttonClass("primary", "sm")}>
-              <Download /> Komplette Versandliste (CSV)
+              <Download /> Versandliste (CSV)
             </a>
           )
         }
       />
 
       {queue.length === 0 ? (
-        <EmptyState icon={<PackageCheck />} title="Alles verschickt!">
-          Sobald ihr Tester für ein Produkt auswählt, erscheinen ihre Adressen hier.
+        <EmptyState icon={<PackageCheck />} title="Alles verschickt">
+          Sobald neue Pakete ausgelost werden, stehen die Adressen hier.
         </EmptyState>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {[...groups.entries()].map(([productId, group]) => {
             const formId = `ship-${productId}`;
             return (
@@ -57,7 +57,7 @@ export default async function ShippingPage() {
                 padded={false}
                 title={
                   <Link href={`/admin/produkte/${productId}`} className="hover:text-coral-600">
-                    {group.title} <Badge tone="violet" className="ml-2 align-middle">{group.items.length} zu versenden</Badge>
+                    {group.title} <Badge tone="violet" className="ml-1.5 align-middle">{group.items.length}</Badge>
                   </Link>
                 }
                 actions={
@@ -75,7 +75,7 @@ export default async function ShippingPage() {
                   </div>
                 }
               >
-                <ul className="divide-y divide-line/60">
+                <ul className="divide-y divide-line">
                   {group.items.map((app) => {
                     const t = app.tester;
                     const lines = [
@@ -86,14 +86,14 @@ export default async function ShippingPage() {
                       t.country !== "DE" ? COUNTRIES[t.country] ?? t.country : null,
                     ].filter(Boolean) as string[];
                     return (
-                      <li key={app.id} className="grid gap-4 px-5 py-4 sm:px-6 lg:grid-cols-[auto_1fr_auto] lg:items-center">
+                      <li key={app.id} className="grid gap-3 px-4 py-3 lg:grid-cols-[auto_1fr_auto] lg:items-center">
                         <input
                           type="checkbox"
                           name="ids"
                           value={app.id}
                           form={formId}
                           aria-label={`${t.firstName} ${t.lastName} markieren`}
-                          className="checkbox-check size-5 cursor-pointer rounded-md bg-white ring-1 ring-line checked:bg-coral-500 checked:ring-coral-500"
+                          className="checkbox-check size-[18px] cursor-pointer rounded-[5px] border border-ink/25 bg-white checked:border-coral-500 checked:bg-coral-500"
                         />
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-6">
                           <address className="text-sm leading-relaxed not-italic">
@@ -109,20 +109,20 @@ export default async function ShippingPage() {
                           <div className="text-sm text-muted">
                             {t.phone && <p>Tel. {t.phone}</p>}
                             <p>{t.email}</p>
-                            <p className="mt-1 text-xs">Ausgewählt am {formatDate(app.decidedAt)}</p>
+                            <p className="mt-1 text-xs">Ausgelost am {formatDate(app.decidedAt)}</p>
                             <CopyAddress text={lines.join("\n")} />
                           </div>
                         </div>
                         <form action={updateApplicationAction} className="flex flex-wrap gap-2 lg:justify-end">
                           <input type="hidden" name="applicationId" value={app.id} />
                           <input type="hidden" name="status" value="shipped" />
-                          <select name="carrier" defaultValue="DHL" className={cn(compactInputClass, "select-chevron w-28 pr-8")} aria-label="Versanddienstleister">
+                          <select name="carrier" defaultValue="DHL" className={cn(compactInputClass, "select-chevron w-24 pr-7")} aria-label="Versanddienstleister">
                             <option value="">–</option>
                             {CARRIERS.map((c) => (
                               <option key={c}>{c}</option>
                             ))}
                           </select>
-                          <input name="trackingNumber" placeholder="Sendungsnr." aria-label="Sendungsnummer" className={cn(compactInputClass, "w-40")} />
+                          <input name="trackingNumber" placeholder="Sendungsnr." aria-label="Sendungsnummer" className={cn(compactInputClass, "w-36")} />
                           <SubmitButton size="sm">
                             <Truck /> Versendet
                           </SubmitButton>
@@ -138,10 +138,10 @@ export default async function ShippingPage() {
       )}
 
       {shipped.length > 0 && (
-        <Panel title="Zuletzt versendet" className="mt-10" padded={false}>
-          <ul className="divide-y divide-line/60">
+        <Panel title="Zuletzt versendet" className="mt-6" padded={false}>
+          <ul className="divide-y divide-line">
             {shipped.map((app) => (
-              <li key={app.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm sm:px-6">
+              <li key={app.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 text-sm">
                 <span>
                   <Link href={`/admin/tester/${app.tester.id}`} className="font-semibold hover:text-coral-600">
                     {app.tester.firstName} {app.tester.lastName}
@@ -152,7 +152,7 @@ export default async function ShippingPage() {
                   {formatDate(app.shippedAt)}
                   {app.carrier && ` · ${app.carrier}`}
                   {app.trackingNumber && ` · ${app.trackingNumber}`}
-                  {app.status === "received" && <Badge tone="coral" className="ml-2">Erhalten</Badge>}
+                  {app.status === "received" && <Badge tone="coral" className="ml-2">Angekommen</Badge>}
                 </span>
               </li>
             ))}

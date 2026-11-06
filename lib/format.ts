@@ -57,7 +57,7 @@ export function todayBerlin() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date());
 }
 
-/** Tage bis zur Bewerbungsfrist: 0 = endet heute, negativ = abgelaufen, null = keine Frist */
+/** Tage bis zum Stichtag: 0 = heute, negativ = vorbei, null = kein Datum */
 export function daysUntil(dateString?: string | null) {
   if (!dateString) return null;
   const toUtc = (s: string) => {
@@ -75,7 +75,7 @@ export function isDeadlinePassed(dateString?: string | null) {
 export function deadlineLabel(dateString?: string | null) {
   const d = daysUntil(dateString);
   if (d === null) return null;
-  if (d < 0) return "Bewerbungsfrist abgelaufen";
+  if (d < 0) return "Abgelaufen";
   if (d === 0) return "Endet heute";
   if (d === 1) return "Noch 1 Tag";
   return `Noch ${d} Tage`;

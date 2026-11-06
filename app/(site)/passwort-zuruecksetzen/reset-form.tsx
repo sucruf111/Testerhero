@@ -9,7 +9,7 @@ import type { FormState } from "@/lib/validation";
 export function ResetForm({ token }: { token: string }) {
   const [state, action] = useActionState<FormState, FormData>(resetPasswordAction, {});
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} className="space-y-4">
       <input type="hidden" name="token" value={token} />
       {state.error && <Alert tone="error">{state.error}</Alert>}
       <Field label="Neues Passwort" name="password" error={state.fieldErrors?.password}>
@@ -18,7 +18,7 @@ export function ResetForm({ token }: { token: string }) {
       <Field label="Passwort wiederholen" name="passwordConfirm" error={state.fieldErrors?.passwordConfirm}>
         <Input name="passwordConfirm" type="password" autoComplete="new-password" minLength={8} required error={state.fieldErrors?.passwordConfirm} />
       </Field>
-      <SubmitButton size="lg" className="w-full" pendingText="Wird gespeichert …">
+      <SubmitButton size="lg" className="w-full" pendingText="Einen Moment …">
         Passwort speichern
       </SubmitButton>
     </form>

@@ -14,16 +14,16 @@ export function PageHeader({
   back?: { href: string; label: string };
 }) {
   return (
-    <div className="mb-8">
+    <div className="mb-6">
       {back && (
-        <Link href={back.href} className="mb-3 inline-block text-sm font-semibold text-muted hover:text-ink">
+        <Link href={back.href} className="mb-2 inline-block text-sm font-medium text-muted hover:text-ink">
           ← {back.label}
         </Link>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
-          {description && <div className="mt-1.5 text-[15px] text-muted">{description}</div>}
+          <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
+          {description && <div className="mt-1 text-sm text-muted">{description}</div>}
         </div>
         {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
       </div>
@@ -35,38 +35,26 @@ export function StatCard({
   label,
   value,
   hint,
-  icon,
   accent = false,
   href,
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
-  icon: ReactNode;
   accent?: boolean;
   href?: string;
 }) {
   const content = (
     <>
-      <div className="flex items-center justify-between">
-        <p className={cn("text-sm font-semibold", accent ? "text-white/80" : "text-muted")}>{label}</p>
-        <span
-          className={cn(
-            "grid size-9 place-items-center rounded-xl [&_svg]:size-[18px]",
-            accent ? "bg-white/15 text-white" : "bg-coral-50 text-coral-600",
-          )}
-        >
-          {icon}
-        </span>
-      </div>
-      <p className="mt-3 font-display text-4xl font-semibold">{value}</p>
-      {hint && <p className={cn("mt-1 text-sm", accent ? "text-white/75" : "text-muted")}>{hint}</p>}
+      <p className={cn("text-[13px] font-medium", accent ? "text-white/85" : "text-muted")}>{label}</p>
+      <p className="mt-1 font-display text-2xl font-bold">{value}</p>
+      {hint && <p className={cn("mt-0.5 text-xs", accent ? "text-white/80" : "text-muted")}>{hint}</p>}
     </>
   );
   const className = cn(
-    "block rounded-3xl p-5 ring-1 transition",
-    accent ? "bg-gradient-to-br from-coral-500 to-coral-400 text-white ring-coral-500 shadow-glow" : "bg-white ring-line/70 shadow-soft",
-    href && "hover:-translate-y-0.5 hover:shadow-lift",
+    "block rounded-xl border p-4 transition",
+    accent ? "border-coral-500 bg-coral-500 text-white" : "border-line bg-white",
+    href && (accent ? "hover:bg-coral-600" : "hover:border-ink/25"),
   );
   return href ? (
     <Link href={href} className={className}>
@@ -77,42 +65,52 @@ export function StatCard({
   );
 }
 
-export function Panel({ title, actions, children, className, padded = true }: { title?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; padded?: boolean }) {
+export function Panel({
+  title,
+  actions,
+  children,
+  className,
+  padded = true,
+}: {
+  title?: ReactNode;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  padded?: boolean;
+}) {
   return (
-    <section className={cn("overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-line/70", className)}>
+    <section className={cn("overflow-hidden rounded-xl border border-line bg-white", className)}>
       {(title || actions) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line/70 px-5 py-4 sm:px-6">
-          {title && <h2 className="font-display text-lg font-semibold">{title}</h2>}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
+          {title && <h2 className="text-[15px] font-semibold">{title}</h2>}
           {actions}
         </div>
       )}
-      <div className={padded ? "p-5 sm:p-6" : undefined}>{children}</div>
+      <div className={padded ? "p-4" : undefined}>{children}</div>
     </section>
   );
 }
 
 export function Tabs({ items }: { items: { href: string; label: string; count?: number; active: boolean }[] }) {
   return (
-    <nav className="flex gap-1 overflow-x-auto rounded-2xl bg-white p-1 shadow-soft ring-1 ring-line/70" aria-label="Filter">
+    <nav className="flex gap-1 overflow-x-auto border-b border-line" aria-label="Filter">
       {items.map((t) => (
         <Link
           key={t.href}
           href={t.href}
           aria-current={t.active ? "page" : undefined}
           className={cn(
-            "inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold whitespace-nowrap transition",
-            t.active ? "bg-ink text-white" : "text-ink-soft hover:bg-sand",
+            "-mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold whitespace-nowrap transition",
+            t.active ? "border-coral-500 text-ink" : "border-transparent text-muted hover:text-ink",
           )}
         >
           {t.label}
-          {t.count !== undefined && (
-            <span className={cn("rounded-full px-1.5 text-xs", t.active ? "bg-white/20" : "bg-sand text-muted")}>{t.count}</span>
-          )}
+          {t.count !== undefined && <span className="rounded bg-sand px-1.5 text-xs text-muted">{t.count}</span>}
         </Link>
       ))}
     </nav>
   );
 }
 
-export const th = "px-4 py-3 text-left text-xs font-semibold tracking-wide text-muted uppercase whitespace-nowrap";
-export const td = "px-4 py-3.5 align-top text-sm";
+export const th = "px-3 py-2.5 text-left text-xs font-semibold text-muted whitespace-nowrap";
+export const td = "px-3 py-2.5 align-middle text-sm";

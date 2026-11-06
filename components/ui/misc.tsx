@@ -27,7 +27,7 @@ export function Badge({ tone = "slate", children, className, dot = true }: { ton
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ring-1 ring-inset",
+        "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap ring-1 ring-inset",
         tones[tone],
         className,
       )}
@@ -39,7 +39,7 @@ export function Badge({ tone = "slate", children, className, dot = true }: { ton
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("rounded-3xl bg-white p-6 shadow-soft ring-1 ring-line/70 sm:p-8", className)}>{children}</div>;
+  return <div className={cn("rounded-2xl border border-line bg-white p-5 sm:p-6", className)}>{children}</div>;
 }
 
 export function Stars({ value, size = "md", className }: { value: number; size?: "sm" | "md" | "lg"; className?: string }) {
@@ -63,11 +63,11 @@ export function Stars({ value, size = "md", className }: { value: number; size?:
 
 export function EmptyState({ icon, title, children, action }: { icon: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center rounded-3xl border-2 border-dashed border-line bg-white/50 px-6 py-14 text-center">
-      <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-coral-50 text-coral-500 [&_svg]:size-7">{icon}</div>
-      <h3 className="font-display text-xl font-semibold text-ink">{title}</h3>
-      {children && <div className="mt-2 max-w-md text-muted">{children}</div>}
-      {action && <div className="mt-6">{action}</div>}
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-line bg-cream/60 px-6 py-10 text-center">
+      <div className="mb-3 grid size-11 place-items-center rounded-xl bg-white text-coral-500 shadow-soft [&_svg]:size-5">{icon}</div>
+      <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
+      {children && <div className="mt-1 max-w-md text-sm text-muted">{children}</div>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }
@@ -82,7 +82,7 @@ export function Avatar({ name, className }: { name: string; className?: string }
     .join("")
     .toUpperCase();
   return (
-    <span className={cn("grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold", palette[hash % palette.length], className)}>
+    <span className={cn("grid size-8 shrink-0 place-items-center rounded-full text-[11px] font-bold", palette[hash % palette.length], className)}>
       {initials}
     </span>
   );

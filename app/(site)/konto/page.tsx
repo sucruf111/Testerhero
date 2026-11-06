@@ -1,215 +1,171 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExternalLink, PackageCheck, PackageOpen, PenLine, Search, Undo2 } from "lucide-react";
+import { ExternalLink, Gift, PackageCheck, PenLine, Truck, Undo2 } from "lucide-react";
 import { ProductImage } from "@/components/product-image";
-import { StatusSteps } from "@/components/site/status-steps";
-import { buttonClass, LinkButton } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 import { Alert } from "@/components/ui/form";
-import { Badge, EmptyState, Stars } from "@/components/ui/misc";
+import { Stars } from "@/components/ui/misc";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { confirmReceivedAction, reactivateAction, withdrawApplicationAction } from "@/lib/actions/tester";
 import { requireTester } from "@/lib/auth/session";
-import { APPLICATION_STATUS } from "@/lib/constants";
+import { getQuota } from "@/lib/claims";
+import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/format";
 import { getTesterApplications } from "@/lib/queries";
 import { trackingUrl } from "@/lib/tracking";
 import { ResendVerification } from "./resend-verification";
 
-export const metadata: Metadata = { title: "Meine Tests" };
+export const metadata: Metadata = { title: "Meine Pakete" };
 
 export default async function KontoPage({ searchParams }: PageProps<"/konto">) {
   const tester = await requireTester("/konto");
-  const [apps, params] = await Promise.all([getTesterApplications(tester.id), searchParams]);
-
-  const todo = apps.filter((a) => a.status === "shipped" || a.status === "received");
-  const others = apps.filter((a) => !todo.includes(a));
-  const stats = {
-    applied: apps.filter((a) => a.status !== "withdrawn").length,
-    active: apps.filter((a) => ["accepted", "shipped", "received"].includes(a.status)).length,
-    reviewed: apps.filter((a) => a.status === "reviewed").length,
-  };
+  const [apps, quota, params] = await Promise.all([getTesterApplications(tester.id), getQuota(tester.id), searchParams]);
+  const visible = apps.filter((a) => a.status !== "rejected" && a.status !== "pending");
 
   return (
-    <div className="space-y-10">
-      <div className="space-y-3">
-        {params.willkommen && (
-          <Alert tone="success" title="Willkommen bei TesterHero! 🎉">
-            Dein Konto wurde erstellt. Wir haben dir eine E-Mail geschickt – bitte bestätige deine Adresse, dann kannst du dich bewerben.
-          </Alert>
-        )}
-        {params.bewertet && (
-          <Alert tone="success" title="Danke für deine Bewertung!">
-            Dein Feedback hilft dem Produktteam enorm weiter.
-          </Alert>
-        )}
-        {params.passwort && <Alert tone="success">Dein neues Passwort ist gespeichert.</Alert>}
-        {params.reaktiviert && <Alert tone="success">Schön, dass du wieder dabei bist! Dein Konto ist wieder aktiv.</Alert>}
-
-        {tester.status === "active" && !tester.emailVerifiedAt && <ResendVerification email={tester.email} />}
-
-        {tester.status === "unsubscribed" && (
-          <div className="flex flex-col gap-4 rounded-3xl bg-sand p-6 ring-1 ring-line sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-semibold">Du bist derzeit abgemeldet.</p>
-              <p className="mt-1 text-[15px] text-muted">Du erhältst keine Produkte und keine E-Mails von uns. Möchtest du wieder mitmachen?</p>
-            </div>
-            <form action={reactivateAction}>
-              <SubmitButton>Konto reaktivieren</SubmitButton>
-            </form>
-          </div>
-        )}
-        {tester.status === "blocked" && (
-          <Alert tone="error" title="Dein Konto ist gesperrt.">
-            Bitte wende dich an unser Team, wenn du Fragen dazu hast.
-          </Alert>
-        )}
-      </div>
-
-      <dl className="grid grid-cols-3 gap-3 sm:gap-5">
-        <Stat label="Bewerbungen" value={stats.applied} />
-        <Stat label="Laufende Tests" value={stats.active} />
-        <Stat label="Bewertungen" value={stats.reviewed} />
-      </dl>
-
-      {apps.length === 0 ? (
-        <EmptyState
-          icon={<Search />}
-          title="Noch keine Bewerbungen"
-          action={<LinkButton href="/produkte">Produkttests entdecken</LinkButton>}
-        >
-          Such dir ein Produkt aus, das dich interessiert, und bewirb dich mit einem Klick.
-        </EmptyState>
-      ) : (
-        <>
-          {todo.length > 0 && (
-            <section>
-              <h2 className="font-display text-2xl font-semibold">Zu erledigen</h2>
-              <div className="mt-4 space-y-4">
-                {todo.map((a) => (
-                  <ApplicationCard key={a.id} app={a} highlight />
-                ))}
-              </div>
-            </section>
-          )}
-          {others.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="font-display text-2xl font-semibold">{todo.length ? "Weitere Tests" : "Meine Tests"}</h2>
-                <Link href="/produkte" className="text-sm font-semibold text-coral-600 hover:text-coral-700">
-                  Neue Produkte entdecken →
-                </Link>
-              </div>
-              <div className="mt-4 space-y-4">
-                {others.map((a) => (
-                  <ApplicationCard key={a.id} app={a} />
-                ))}
-              </div>
-            </section>
-          )}
-        </>
+    <div className="space-y-6">
+      {params.willkommen && (
+        <Alert tone="success" title="Schön, dass du dabei bist.">
+          Wir haben dir eine E-Mail geschickt. Bitte bestätige deine Adresse, erst dann kannst du ausgelost werden.
+        </Alert>
       )}
-    </div>
-  );
-}
+      {params.bewertet && <Alert tone="success">Danke für deine Bewertung!</Alert>}
+      {params.passwort && <Alert tone="success">Dein neues Passwort ist gespeichert.</Alert>}
+      {params.reaktiviert && <Alert tone="success">Du bist wieder dabei.</Alert>}
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-3xl bg-white p-4 shadow-soft ring-1 ring-line/70 sm:p-6">
-      <dt className="text-xs font-semibold text-muted sm:text-sm">{label}</dt>
-      <dd className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{value}</dd>
+      {tester.status === "active" && !tester.emailVerifiedAt && <ResendVerification email={tester.email} />}
+
+      {tester.status === "unsubscribed" && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-line bg-cream p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink-soft">Du bist abgemeldet und bekommst gerade keine Pakete. Willst du wieder mitmachen?</p>
+          <form action={reactivateAction}>
+            <SubmitButton size="sm">Wieder mitmachen</SubmitButton>
+          </form>
+        </div>
+      )}
+      {tester.status === "blocked" && (
+        <Alert tone="error">Dein Konto ist gesperrt. Wenn du Fragen hast, antworte einfach auf eine unserer E-Mails.</Alert>
+      )}
+
+      {tester.status === "active" && tester.emailVerifiedAt && (
+        <div className="rounded-2xl border border-line bg-cream/70 p-4 text-sm text-ink-soft">
+          <p>
+            <span className="font-semibold text-ink">Du bist dabei.</span> Sobald du für ein Produkt ausgelost wirst, bekommst du eine E-Mail.
+          </p>
+          <p className="mt-1 text-muted">
+            In den letzten {quota.settings.claimWindowDays} Tagen: {quota.inWindow} von höchstens {quota.settings.maxClaimsPerWindow}{" "}
+            Paketen. Offen: {quota.open} von höchstens {quota.settings.maxOpenTests}.
+          </p>
+        </div>
+      )}
+
+      <section>
+        <h2 className="font-display text-xl font-bold">Meine Pakete</h2>
+        {visible.length === 0 ? (
+          <div className="mt-3 rounded-2xl border border-dashed border-line px-5 py-8 text-center">
+            <Gift className="mx-auto size-6 text-coral-500" />
+            <p className="mt-2 font-semibold">Noch kein Paket</p>
+            <p className="mt-1 text-sm text-muted">Sobald du ausgelost wirst, siehst du dein Paket hier.</p>
+          </div>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {visible.map((app) => (
+              <PackageRow key={app.id} app={app} />
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
 
 type App = Awaited<ReturnType<typeof getTesterApplications>>[number];
 
-function ApplicationCard({ app, highlight = false }: { app: App; highlight?: boolean }) {
-  const s = APPLICATION_STATUS[app.status];
+function PackageRow({ app }: { app: App }) {
+  // Das Produkt bleibt verdeckt, bis der Tester das Paket ausgepackt hat
+  const revealed = app.status === "received" || app.status === "reviewed";
   const track = trackingUrl(app.carrier, app.trackingNumber);
-  const canReview = app.status === "shipped" || app.status === "received";
+
+  const state = {
+    accepted: { label: "Ausgelost", text: "Wir packen gerade dein Paket.", icon: Gift },
+    shipped: { label: "Unterwegs", text: `Verschickt am ${formatDate(app.shippedAt)}.`, icon: Truck },
+    received: { label: "Ausgepackt", text: "Viel Spaß beim Testen.", icon: PackageCheck },
+    reviewed: { label: "Bewertet", text: "Danke für deine Bewertung.", icon: PenLine },
+  }[app.status as "accepted" | "shipped" | "received" | "reviewed"];
+  if (!state) return null;
 
   return (
-    <article
-      className={
-        highlight
-          ? "overflow-hidden rounded-3xl bg-white shadow-lift ring-2 ring-coral-200"
-          : "overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-line/70"
-      }
-    >
-      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:p-6">
-        <Link href={`/produkte/${app.product.slug}`} className="block size-24 shrink-0 overflow-hidden rounded-2xl ring-1 ring-line/70 sm:size-28">
-          <ProductImage src={app.product.imageUrl} alt={app.product.title} category={app.product.category} />
-        </Link>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <Link href={`/produkte/${app.product.slug}`} className="font-display text-xl font-semibold hover:text-coral-600">
-                {app.product.title}
-              </Link>
-              <p className="mt-0.5 text-sm text-muted">Beworben am {formatDate(app.createdAt)}</p>
+    <li className={cn("rounded-2xl border bg-white p-4", app.status === "received" ? "border-coral-300" : "border-line")}>
+      <div className="flex gap-4">
+        <div className="size-16 shrink-0 overflow-hidden rounded-xl border border-line sm:size-20">
+          {revealed ? (
+            <ProductImage src={app.product.imageUrl} alt={app.product.title} category={app.product.category} />
+          ) : (
+            <div className="grid h-full w-full place-items-center bg-coral-500 text-white">
+              <Gift className="size-7" />
             </div>
-            <Badge tone={s.tone}>{s.testerLabel}</Badge>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="font-semibold">{revealed ? app.product.title : "Überraschungspaket"}</p>
+            <span className="rounded-md bg-sand px-1.5 py-0.5 text-xs font-semibold text-ink-soft">{state.label}</span>
           </div>
-
-          <div className="mt-5 max-w-lg">
-            <StatusSteps status={app.status} />
-          </div>
-
-          {app.status === "shipped" && (app.trackingNumber || app.carrier) && (
-            <p className="mt-4 text-sm text-ink-soft">
-              {app.carrier && <span className="font-semibold">{app.carrier}</span>}
-              {app.trackingNumber && (
-                <>
-                  {" "}· Sendungsnr.{" "}
-                  {track ? (
-                    <a href={track} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-coral-600 hover:underline">
-                      {app.trackingNumber} <ExternalLink className="size-3.5" />
-                    </a>
-                  ) : (
-                    <span className="font-mono">{app.trackingNumber}</span>
-                  )}
-                </>
-              )}
+          <p className="mt-0.5 text-sm text-muted">
+            {state.text}
+            {app.status === "shipped" && app.trackingNumber && (
+              <>
+                {" "}
+                {app.carrier ? `${app.carrier}, ` : ""}Sendungsnummer{" "}
+                {track ? (
+                  <a href={track} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 font-semibold text-coral-600 hover:underline">
+                    {app.trackingNumber} <ExternalLink className="size-3" />
+                  </a>
+                ) : (
+                  <span className="font-mono">{app.trackingNumber}</span>
+                )}
+              </>
+            )}
+          </p>
+          {revealed && app.product.shortDescription && app.status === "received" && (
+            <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{app.product.shortDescription}</p>
+          )}
+          {app.review && (
+            <p className="mt-1.5 flex items-center gap-2 text-sm">
+              <Stars value={app.review.rating} size="sm" /> <span className="truncate text-ink-soft">„{app.review.title}“</span>
             </p>
           )}
 
-          {app.review && (
-            <div className="mt-4 rounded-2xl bg-cream p-4 ring-1 ring-line/70">
-              <Stars value={app.review.rating} size="sm" />
-              <p className="mt-1 font-semibold">„{app.review.title}“</p>
-            </div>
-          )}
-
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {app.status === "shipped" && (
               <form action={confirmReceivedAction}>
                 <input type="hidden" name="applicationId" value={app.id} />
-                <SubmitButton variant="secondary" size="sm">
-                  <PackageCheck /> Paket ist angekommen
+                <SubmitButton size="sm">
+                  <PackageCheck /> Paket ist da, auspacken
                 </SubmitButton>
               </form>
             )}
-            {canReview && (
+            {app.status === "received" && (
               <Link href={`/konto/bewertung/${app.id}`} className={buttonClass("primary", "sm")}>
                 <PenLine /> Jetzt bewerten
               </Link>
             )}
-            {app.status === "pending" && (
+            {app.status === "accepted" && (
               <form action={withdrawApplicationAction}>
                 <input type="hidden" name="applicationId" value={app.id} />
-                <SubmitButton variant="ghost" size="sm" confirm="Möchtest du deine Bewerbung wirklich zurückziehen?">
-                  <Undo2 /> Bewerbung zurückziehen
+                <SubmitButton
+                  variant="ghost"
+                  size="sm"
+                  className="-ml-2 text-muted"
+                  confirm="Willst du dieses Paket wirklich nicht? Es geht dann an jemand anderen."
+                >
+                  <Undo2 /> Paket ablehnen
                 </SubmitButton>
               </form>
-            )}
-            {app.status === "accepted" && (
-              <p className="inline-flex items-center gap-2 text-sm text-muted">
-                <PackageOpen className="size-4 text-coral-500" /> Wir bereiten den Versand vor – bitte prüfe deine Lieferadresse im Profil.
-              </p>
             )}
           </div>
         </div>
       </div>
-    </article>
+    </li>
   );
 }

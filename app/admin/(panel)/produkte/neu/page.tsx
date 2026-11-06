@@ -13,7 +13,7 @@ export default async function NewProductPage() {
       <PageHeader
         back={{ href: "/admin/produkte", label: "Produkte" }}
         title="Neues Produkt"
-        description="Speichere das Produkt als Entwurf oder setze es direkt auf „Bewerbung offen“."
+        description="Als Entwurf speichern oder direkt auf „Aktiv“ stellen. Aktive Produkte werden sofort verteilt."
       />
       <ProductForm blobEnabled={isBlobConfigured()} />
     </div>

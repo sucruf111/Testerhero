@@ -3,11 +3,11 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export const inputClass =
-  "block w-full rounded-2xl border-0 bg-white px-4 py-3 text-[15px] text-ink shadow-soft ring-1 ring-line transition placeholder:text-muted/60 focus:ring-2 focus:ring-coral-400 focus:outline-none aria-[invalid=true]:ring-red-400 disabled:bg-sand disabled:text-muted";
+  "block w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-[15px] text-ink transition placeholder:text-muted/60 hover:border-ink/20 focus:border-coral-400 focus:ring-3 focus:ring-coral-100 focus:outline-none aria-[invalid=true]:border-red-400 disabled:bg-sand disabled:text-muted";
 
 /** Kompakte Felder für Tabellenzeilen (z. B. Sendungsnummer) */
 export const compactInputClass =
-  "h-9 rounded-full border-0 bg-white px-3.5 text-sm text-ink shadow-soft ring-1 ring-line transition placeholder:text-muted/60 focus:ring-2 focus:ring-coral-400 focus:outline-none";
+  "h-8 rounded-lg border border-line bg-white px-3 text-[13px] text-ink transition placeholder:text-muted/60 focus:border-coral-400 focus:ring-3 focus:ring-coral-100 focus:outline-none";
 
 type FieldProps = {
   label: ReactNode;
@@ -21,18 +21,18 @@ type FieldProps = {
 
 export function Field({ label, name, hint, error, optional, className, children }: FieldProps) {
   return (
-    <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={name} className="flex items-baseline justify-between gap-2 text-sm font-semibold text-ink">
+    <div className={cn("space-y-1", className)}>
+      <label htmlFor={name} className="flex items-baseline justify-between gap-2 text-[13px] font-semibold text-ink">
         <span>{label}</span>
         {optional && <span className="text-xs font-normal text-muted">optional</span>}
       </label>
       {children}
       {error?.length ? (
-        <p id={`${name}-error`} className="text-sm text-red-600">
+        <p id={`${name}-error`} className="text-[13px] text-red-600">
           {error[0]}
         </p>
       ) : hint ? (
-        <p className="text-sm text-muted">{hint}</p>
+        <p className="text-[13px] text-muted">{hint}</p>
       ) : null}
     </div>
   );
@@ -61,7 +61,7 @@ export function Textarea({ className, error, name, id, ...props }: TextareaProps
       id={id ?? name}
       name={name}
       aria-invalid={error?.length ? true : undefined}
-      className={cn(inputClass, "min-h-28 resize-y leading-relaxed", className)}
+      className={cn(inputClass, "min-h-24 resize-y leading-relaxed", className)}
       {...props}
     />
   );
@@ -93,12 +93,12 @@ export function Checkbox({ label, description, className, id, name, ...props }: 
         id={inputId}
         name={name}
         type="checkbox"
-        className="checkbox-check peer mt-0.5 size-5 shrink-0 cursor-pointer rounded-md bg-white ring-1 ring-line transition checked:bg-coral-500 checked:ring-coral-500"
+        className="checkbox-check peer mt-0.5 size-[18px] shrink-0 cursor-pointer rounded-[5px] border border-ink/25 bg-white transition checked:border-coral-500 checked:bg-coral-500"
         {...props}
       />
-      <span className="text-[15px] leading-snug text-ink-soft">
+      <span className="text-sm leading-snug text-ink-soft">
         {label}
-        {description && <span className="mt-0.5 block text-sm text-muted">{description}</span>}
+        {description && <span className="mt-0.5 block text-[13px] text-muted">{description}</span>}
       </span>
     </label>
   );
@@ -110,7 +110,7 @@ export function Chip({ label, className, name, value, ...props }: Omit<Component
   return (
     <label htmlFor={id} className={cn("cursor-pointer", className)}>
       <input id={id} type="checkbox" name={name} value={value} className="peer sr-only" {...props} />
-      <span className="inline-flex items-center rounded-full bg-white px-3.5 py-2 text-sm font-medium text-ink-soft ring-1 ring-line transition peer-checked:bg-ink peer-checked:text-white peer-checked:ring-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-coral-500 hover:ring-ink/30">
+      <span className="inline-flex items-center rounded-lg border border-line bg-white px-3 py-1.5 text-[13px] font-medium text-ink-soft transition peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-coral-500 hover:border-ink/30">
         {label}
       </span>
     </label>
@@ -127,9 +127,9 @@ export function Alert({ tone = "info", title, children, className }: AlertProps)
   }[tone];
   const Icon = { success: CircleCheck, error: CircleAlert, info: Info }[tone];
   return (
-    <div role={tone === "error" ? "alert" : "status"} className={cn("flex gap-3 rounded-2xl px-4 py-3.5 ring-1", styles, className)}>
-      <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />
-      <div className="text-[15px] leading-relaxed">
+    <div role={tone === "error" ? "alert" : "status"} className={cn("flex gap-2.5 rounded-xl px-3.5 py-3 ring-1", styles, className)}>
+      <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <div className="text-sm leading-relaxed">
         {title && <p className="font-semibold">{title}</p>}
         {children}
       </div>

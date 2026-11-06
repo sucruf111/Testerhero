@@ -29,12 +29,12 @@ export const addressSchema = z
   .object({
     firstName: trimmed(1, "Bitte gib deinen Vornamen ein.", 80),
     lastName: trimmed(1, "Bitte gib deinen Nachnamen ein.", 80),
-    street: trimmed(3, "Bitte gib Straße und Hausnummer ein.", 120),
+    street: trimmed(3, "Bitte gib Straße und Hausnummer an.", 120),
     addressExtra: optionalText(120),
     postalCode: z
       .string()
       .trim()
-      .regex(/^\d{4,5}$/, "Bitte gib eine gültige Postleitzahl ein."),
+      .regex(/^\d{4,5}$/, "Bitte gib eine gültige Postleitzahl an."),
     city: trimmed(2, "Bitte gib deinen Ort ein.", 80),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]], "Bitte wähle ein Land."),
     phone: optionalText(40),
@@ -46,7 +46,7 @@ export const addressSchema = z
         if (!v) return null;
         const n = Number(v);
         if (!Number.isInteger(n) || n < currentYear - 100 || n > currentYear - 16) {
-          ctx.addIssue({ code: "custom", message: "Bitte gib ein gültiges Geburtsjahr ein (ab 16 Jahren)." });
+          ctx.addIssue({ code: "custom", message: "Bitte gib ein gültiges Geburtsjahr an. Du musst mindestens 16 sein." });
           return z.NEVER;
         }
         return n;
@@ -68,8 +68,7 @@ export const registerSchema = addressSchema.and(
   z.object({
     email: emailSchema,
     password: passwordSchema,
-    notifyNewProducts: z.boolean(),
-    consent: z.literal(true, "Bitte stimme den Teilnahmebedingungen und der Datenschutzerklärung zu."),
+    consent: z.literal(true, "Bitte setz hier einen Haken, sonst können wir dich nicht anmelden."),
   }),
 );
 
@@ -78,28 +77,18 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Bitte gib dein Passwort ein."),
 });
 
-export const applySchema = z.object({
-  productId: z.uuid(),
-  motivation: z
-    .string()
-    .trim()
-    .max(1000, "Maximal 1000 Zeichen.")
-    .optional()
-    .transform((v) => (v ? v : null)),
-});
-
 export const reviewSchema = z.object({
   applicationId: z.uuid(),
   rating: z.coerce
     .number()
     .int()
-    .min(1, "Bitte vergib 1 bis 5 Sterne.")
-    .max(5, "Bitte vergib 1 bis 5 Sterne."),
-  title: trimmed(3, "Bitte gib deiner Bewertung eine Überschrift.", 120),
-  body: trimmed(80, "Bitte beschreibe deine Erfahrung etwas ausführlicher (mind. 80 Zeichen).", 5000),
+    .min(1, "Bitte wähl 1 bis 5 Sterne.")
+    .max(5, "Bitte wähl 1 bis 5 Sterne."),
+  title: trimmed(3, "Bitte schreib eine kurze Überschrift.", 120),
+  body: trimmed(80, "Bitte schreib etwas mehr, mindestens 80 Zeichen.", 5000),
   pros: optionalText(1000),
   cons: optionalText(1000),
-  wouldRecommend: z.enum(["yes", "no"], "Bitte wähle aus, ob du das Produkt empfehlen würdest."),
+  wouldRecommend: z.enum(["yes", "no"], "Bitte sag uns, ob du das Produkt weiterempfehlen würdest."),
 });
 
 export const productSchema = z.object({

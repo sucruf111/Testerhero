@@ -6,11 +6,11 @@ import { useEffect, useRef, useState } from "react";
 export function SelectAll({ formId }: { formId: string }) {
   const ref = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState(0);
+  const selector = `input[type=checkbox][name=ids][form="${formId}"]`;
 
   useEffect(() => {
-    const boxes = () => Array.from(document.querySelectorAll<HTMLInputElement>(`input[type=checkbox][name=ids][form="${formId}"]`));
     const update = () => {
-      const all = boxes();
+      const all = Array.from(document.querySelectorAll<HTMLInputElement>(selector));
       const checked = all.filter((b) => b.checked).length;
       setSelected(checked);
       if (ref.current) {
@@ -21,20 +21,19 @@ export function SelectAll({ formId }: { formId: string }) {
     document.addEventListener("change", update);
     update();
     return () => document.removeEventListener("change", update);
-  }, [formId]);
+  }, [selector]);
 
   return (
-    <label className="mr-2 inline-flex cursor-pointer items-center gap-2 text-sm font-semibold">
+    <label className="mr-1 inline-flex cursor-pointer items-center gap-2 text-[13px] font-semibold">
       <input
         ref={ref}
         type="checkbox"
         aria-label="Alle markieren"
-        className="checkbox-check size-5 cursor-pointer rounded-md bg-white ring-1 ring-line checked:bg-coral-500 checked:ring-coral-500 indeterminate:bg-coral-300"
+        className="checkbox-check size-[18px] cursor-pointer rounded-[5px] border border-ink/25 bg-white checked:border-coral-500 checked:bg-coral-500 indeterminate:bg-coral-300"
         onChange={(e) => {
-          document
-            .querySelectorAll<HTMLInputElement>(`input[type=checkbox][name=ids][form="${formId}"]`)
-            .forEach((b) => (b.checked = e.target.checked));
-          setSelected(e.target.checked ? document.querySelectorAll(`input[type=checkbox][name=ids][form="${formId}"]`).length : 0);
+          const boxes = document.querySelectorAll<HTMLInputElement>(selector);
+          boxes.forEach((b) => (b.checked = e.target.checked));
+          setSelected(e.target.checked ? boxes.length : 0);
         }}
       />
       {selected > 0 ? `${selected} markiert` : "Alle"}

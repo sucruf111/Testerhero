@@ -55,11 +55,9 @@ export function ProductImage({
   const style = categoryStyle[category] ?? { icon: Package, bg: "from-sand via-white to-coral-50" };
   const Icon = style.icon;
   return (
-    <div className={cn("relative grid h-full w-full place-items-center overflow-hidden bg-gradient-to-br", style.bg, className)} role="img" aria-label={alt}>
-      <div className="bg-grain absolute inset-0 opacity-60" />
-      <div className="absolute -top-10 -right-10 size-40 rounded-full bg-white/50 blur-2xl" />
-      <div className="relative grid aspect-square w-[56%] max-w-20 place-items-center rounded-[28%] bg-white/80 shadow-soft ring-1 ring-white backdrop-blur">
-        <Icon className="size-[46%] text-ink/80" strokeWidth={1.6} />
+    <div className={cn("grid h-full w-full place-items-center bg-gradient-to-br", style.bg, className)} role="img" aria-label={alt}>
+      <div className="grid aspect-square w-[40%] max-w-16 place-items-center rounded-[28%] bg-white/85 shadow-soft">
+        <Icon className="size-[48%] text-ink/75" strokeWidth={1.6} />
       </div>
     </div>
   );

@@ -21,9 +21,10 @@ export const testerStatus = pgEnum("tester_status", ["active", "unsubscribed", "
 export const productStatus = pgEnum("product_status", ["draft", "active", "closed"]);
 
 /**
- * Ablauf einer Bewerbung:
- * pending → accepted → shipped → received → reviewed
- * Abzweigungen: rejected (nicht ausgewählt) · withdrawn (vom Tester zurückgezogen)
+ * Ablauf eines Pakets (Überraschungsbox):
+ * accepted (ausgelost) → shipped (versendet) → received (ausgepackt) → reviewed (bewertet)
+ * Abzweigungen: rejected (von der Agentur storniert) · withdrawn (vom Tester abgelehnt oder abgemeldet)
+ * pending wird aktuell nicht mehr verwendet.
  */
 export const applicationStatus = pgEnum("application_status", [
   "pending",
@@ -70,6 +71,8 @@ export const testers = pgTable(
     consentAt: timestamp("consent_at", { withTimezone: true }).notNull().defaultNow(),
     unsubscribedAt: timestamp("unsubscribed_at", { withTimezone: true }),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+    /** Normalisierte Adresse – verhindert, dass ein Haushalt dasselbe Produkt mehrfach bekommt */
+    addressKey: text("address_key"),
     /** Interne Notiz der Agentur – für Tester unsichtbar */
     adminNote: text("admin_note"),
     ...timestamps,
@@ -77,8 +80,24 @@ export const testers = pgTable(
   (t) => [
     uniqueIndex("testers_email_idx").on(t.email),
     index("testers_status_idx").on(t.status),
+    index("testers_address_key_idx").on(t.addressKey),
   ],
 );
+
+/* ───────────── Einstellungen (eine Zeile) ───────────── */
+
+export const settings = pgTable("settings", {
+  id: smallint("id").primaryKey().default(1),
+  /** Wie viele Produkte eine Person innerhalb von `claimWindowDays` bekommen darf */
+  maxClaimsPerWindow: smallint("max_claims_per_window").notNull().default(3),
+  claimWindowDays: smallint("claim_window_days").notNull().default(30),
+  /** Wie viele Tests gleichzeitig offen (noch nicht bewertet) sein dürfen */
+  maxOpenTests: smallint("max_open_tests").notNull().default(2),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
 
 /* ───────────── Produkte ───────────── */
 
@@ -190,6 +209,7 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   tester: one(testers, { fields: [reviews.testerId], references: [testers.id] }),
 }));
 
+export type Settings = typeof settings.$inferSelect;
 export type Tester = typeof testers.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Application = typeof applications.$inferSelect;

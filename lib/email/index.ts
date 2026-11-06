@@ -47,18 +47,18 @@ function renderHtml(content: EmailContent, unsubscribeUrl: string | null) {
     ? `<table role="presentation" width="100%" style="margin:8px 0 24px;background:#fff6ef;border-radius:14px" cellpadding="0" cellspacing="0"><tr><td style="padding:18px 20px">${content.highlight
         .map(
           (h) =>
-            `<div style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#a0522d;margin-bottom:2px">${escapeHtml(h.label)}</div><div style="font-size:17px;font-weight:700;color:#1d1a3b;margin-bottom:10px">${escapeHtml(h.value)}</div>`,
+            `<div style="font-size:13px;color:#8a5a3c;margin-bottom:2px">${escapeHtml(h.label)}</div><div style="font-size:17px;font-weight:700;color:#1d1a3b;margin-bottom:10px">${escapeHtml(h.value)}</div>`,
         )
         .join("")}</td></tr></table>`
     : "";
   const cta = content.cta
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="border-radius:999px;background:#ff5a36"><a href="${content.cta.url}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px">${escapeHtml(content.cta.label)}</a></td></tr></table>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="border-radius:999px;background:#ff5a36"><a href="${content.cta.url}" style="display:inline-block;padding:12px 24px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px">${escapeHtml(content.cta.label)}</a></td></tr></table>`
     : "";
   const footnote = content.footnote
     ? `<p style="margin:0;font-size:13px;line-height:1.6;color:#8a8799">${escapeHtml(content.footnote)}</p>`
     : "";
   const unsubscribe = unsubscribeUrl
-    ? `<br>Du möchtest keine Produkte und E-Mails mehr von uns erhalten? <a href="${unsubscribeUrl}" style="color:#8a8799">Hier abmelden</a>.`
+    ? ` Du willst keine Produkte und E-Mails mehr? <a href="${unsubscribeUrl}" style="color:#8a8799">Hier abmelden</a>.`
     : "";
 
   return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escapeHtml(content.subject)}</title></head>
@@ -67,11 +67,11 @@ function renderHtml(content: EmailContent, unsubscribeUrl: string | null) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f1ea;padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
 <tr><td style="padding:0 8px 20px"><a href="${base}" style="text-decoration:none;font-size:20px;font-weight:800;color:#1d1a3b">Tester<span style="color:#ff5a36">Hero</span></a></td></tr>
-<tr><td style="background:#ffffff;border-radius:24px;padding:36px 32px;box-shadow:0 1px 2px rgba(29,26,59,.06)">
-<h1 style="margin:0 0 20px;font-size:26px;line-height:1.25;color:#1d1a3b;font-family:Georgia,'Times New Roman',serif">${escapeHtml(content.heading)}</h1>
-${paragraphs}${highlight}${cta}${footnote}
+<tr><td style="background:#ffffff;border-radius:16px;padding:28px 28px;box-shadow:0 1px 2px rgba(29,26,59,.06)">
+<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#1d1a3b">${escapeHtml(content.heading)}</p>
+${paragraphs}${highlight}${cta}<p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#3d3a52">Viele Grüße<br>dein TesterHero-Team</p>${footnote}
 </td></tr>
-<tr><td style="padding:20px 8px;font-size:12px;line-height:1.6;color:#8a8799">Du erhältst diese E-Mail, weil du bei TesterHero als Produkttester:in registriert bist.${unsubscribe}<br><a href="${base}/impressum" style="color:#8a8799">Impressum</a> · <a href="${base}/datenschutz" style="color:#8a8799">Datenschutz</a></td></tr>
+<tr><td style="padding:20px 8px;font-size:12px;line-height:1.6;color:#8a8799">Du bekommst diese E-Mail, weil du bei TesterHero angemeldet bist.${unsubscribe}<br><a href="${base}/impressum" style="color:#8a8799">Impressum</a> · <a href="${base}/datenschutz" style="color:#8a8799">Datenschutz</a></td></tr>
 </table></td></tr></table></body></html>`;
 }
 
@@ -82,10 +82,10 @@ function renderText(content: EmailContent, unsubscribeUrl: string | null) {
     ...content.paragraphs.flatMap((p) => [p, ""]),
     ...(content.highlight ?? []).map((h) => `${h.label}: ${h.value}`),
     content.cta ? `\n${content.cta.label}: ${content.cta.url}\n` : "",
-    content.footnote ?? "",
+    "Viele Grüße",
+    "dein TesterHero-Team",
     "",
-    "—",
-    "TesterHero",
+    content.footnote ?? "",
     unsubscribeUrl ? `Abmelden: ${unsubscribeUrl}` : "",
   ].join("\n");
 }

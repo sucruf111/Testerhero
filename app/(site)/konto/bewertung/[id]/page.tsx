@@ -20,33 +20,33 @@ export default async function ReviewPage({ params }: PageProps<"/konto/bewertung
     with: { product: true },
   });
   if (!app) notFound();
-  if (app.status === "reviewed") redirect("/konto");
-  if (app.status !== "shipped" && app.status !== "received") redirect("/konto");
+  // Bewerten erst nach dem Auspacken
+  if (app.status !== "received") redirect("/konto");
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Link href="/konto" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
-        <ArrowLeft className="size-4" /> Zurück zu meinen Tests
+    <div className="mx-auto max-w-2xl">
+      <Link href="/konto" className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink">
+        <ArrowLeft className="size-4" /> Zurück
       </Link>
 
-      <div className="mt-6 flex items-center gap-5 rounded-3xl bg-white p-5 shadow-soft ring-1 ring-line/70">
-        <div className="size-20 shrink-0 overflow-hidden rounded-2xl">
+      <div className="mt-4 flex items-center gap-4">
+        <div className="size-16 shrink-0 overflow-hidden rounded-xl border border-line">
           <ProductImage src={app.product.imageUrl} alt={app.product.title} category={app.product.category} />
         </div>
         <div>
-          <p className="text-sm font-semibold text-coral-600">Deine Bewertung für</p>
-          <h2 className="font-display text-2xl font-semibold">{app.product.title}</h2>
+          <p className="text-sm text-muted">Deine Bewertung für</p>
+          <h2 className="font-display text-xl font-bold">{app.product.title}</h2>
         </div>
       </div>
 
       {app.product.testInstructions && (
-        <div className="mt-5 rounded-3xl bg-lilac-50 p-5 text-[15px] leading-relaxed text-ink-soft ring-1 ring-lilac-100">
-          <p className="mb-1 font-semibold text-ink">Darauf kommt es an:</p>
+        <div className="mt-4 rounded-xl bg-cream p-4 text-sm leading-relaxed text-ink-soft">
+          <p className="mb-1 font-semibold text-ink">Darauf kannst du achten:</p>
           <p className="whitespace-pre-line">{app.product.testInstructions}</p>
         </div>
       )}
 
-      <div className="mt-6 rounded-[2rem] bg-white p-6 shadow-lift ring-1 ring-line/70 sm:p-9">
+      <div className="mt-4 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <ReviewForm applicationId={app.id} />
       </div>
     </div>

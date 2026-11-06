@@ -7,37 +7,37 @@ export default function DatenschutzPage() {
   return (
     <LegalPage title="Datenschutz">
       <section>
-        <h2>1. Verantwortliche Stelle</h2>
+        <h2>1. Wer verantwortlich ist</h2>
         <p>[Name der Agentur, Anschrift, E-Mail] – siehe Impressum.</p>
       </section>
       <section>
-        <h2>2. Welche Daten wir verarbeiten</h2>
-        <p>Wenn du dich bei TesterHero registrierst, verarbeiten wir:</p>
+        <h2>2. Welche Daten wir speichern</h2>
+        <p>Wenn du dich bei TesterHero anmeldest, speichern wir:</p>
         <ul>
-          <li>Name, E-Mail-Adresse und Lieferadresse (Pflichtangaben)</li>
-          <li>Telefonnummer und Geburtsjahr (freiwillig)</li>
-          <li>deine Interessen, Bewerbungen, Versandstatus und Bewertungen</li>
-          <li>technisch notwendige Daten (z. B. Login-Cookie)</li>
+          <li>Name, E-Mail-Adresse und Lieferadresse</li>
+          <li>Telefonnummer und Geburtsjahr, wenn du sie angibst</li>
+          <li>deine Pakete, den Versandstatus und deine Bewertungen</li>
+          <li>ein Cookie, damit du eingeloggt bleibst</li>
         </ul>
       </section>
       <section>
-        <h2>3. Zwecke und Rechtsgrundlagen</h2>
+        <h2>3. Wofür wir die Daten nutzen</h2>
         <ul>
-          <li>Durchführung der Produkttests inkl. Versand an deine Adresse (Art. 6 Abs. 1 lit. b DSGVO)</li>
-          <li>E-Mails zu neuen Produkttests nur mit deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) – jederzeit widerrufbar</li>
-          <li>Auswertung der Bewertungen für die jeweiligen Hersteller in zusammengefasster Form (Art. 6 Abs. 1 lit. b DSGVO)</li>
+          <li>Um Pakete auszulosen und an deine Adresse zu schicken (Art. 6 Abs. 1 lit. b DSGVO)</li>
+          <li>Um dir E-Mails zu deinen Paketen zu schicken (Art. 6 Abs. 1 lit. b DSGVO)</li>
+          <li>Um deine Bewertung an den Hersteller weiterzugeben (Art. 6 Abs. 1 lit. b DSGVO)</li>
         </ul>
       </section>
       <section>
-        <h2>4. Empfänger</h2>
+        <h2>4. Wer die Daten bekommt</h2>
         <p>
           Hosting: Vercel Inc. · Datenbank: [Anbieter, z. B. Neon Inc.] · E-Mail-Versand: [Anbieter, z. B. Resend] · Versanddienstleister (DHL, Hermes etc.) zur Zustellung.
           Mit allen Dienstleistern bestehen Auftragsverarbeitungsverträge. [Bitte ergänzen: Drittlandtransfer / Standardvertragsklauseln]
         </p>
       </section>
       <section>
-        <h2>5. Speicherdauer</h2>
-        <p>Wir speichern deine Daten, solange du registriert bist. Wenn du dein Konto löschst, werden alle personenbezogenen Daten unverzüglich entfernt.</p>
+        <h2>5. Wie lange wir die Daten speichern</h2>
+        <p>So lange du angemeldet bist. Wenn du dein Konto löschst, löschen wir alle deine Daten sofort.</p>
       </section>
       <section>
         <h2>6. Deine Rechte</h2>
@@ -49,7 +49,7 @@ export default function DatenschutzPage() {
       </section>
       <section>
         <h2>7. Cookies</h2>
-        <p>Wir verwenden ausschließlich technisch notwendige Cookies für den Login. Es findet kein Tracking statt.</p>
+        <p>Wir nutzen nur ein Cookie für den Login. Wir verfolgen nicht, was du auf der Seite machst.</p>
       </section>
     </LegalPage>
   );

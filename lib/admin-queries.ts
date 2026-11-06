@@ -1,5 +1,5 @@
 import "server-only";
-import { and, arrayContains, asc, avg, count, desc, eq, getTableColumns, gte, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, arrayContains, asc, avg, count, desc, eq, getTableColumns, gte, ilike, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type { ApplicationStatus, TesterStatus } from "@/lib/db/schema";
 
@@ -13,6 +13,7 @@ export async function getDashboardStats() {
     db
       .select({
         active: sql<number>`count(*) filter (where ${t.status} = 'active')`.mapWith(Number),
+        ready: sql<number>`count(*) filter (where ${t.status} = 'active' and ${t.emailVerifiedAt} is not null)`.mapWith(Number),
         unsubscribed: sql<number>`count(*) filter (where ${t.status} = 'unsubscribed')`.mapWith(Number),
         newLast30: sql<number>`count(*) filter (where ${t.createdAt} >= ${since.toISOString()})`.mapWith(Number),
         unverified: sql<number>`count(*) filter (where ${t.emailVerifiedAt} is null and ${t.status} = 'active')`.mapWith(Number),
@@ -20,7 +21,6 @@ export async function getDashboardStats() {
       .from(t),
     db
       .select({
-        pending: sql<number>`count(*) filter (where ${a.status} = 'pending')`.mapWith(Number),
         accepted: sql<number>`count(*) filter (where ${a.status} = 'accepted')`.mapWith(Number),
         inTest: sql<number>`count(*) filter (where ${a.status} in ('shipped','received'))`.mapWith(Number),
       })
@@ -38,7 +38,8 @@ export async function getDashboardStats() {
 
 export async function getRecentApplications(limit = 8) {
   return db.query.applications.findMany({
-    orderBy: desc(a.createdAt),
+    where: ne(a.status, "withdrawn"),
+    orderBy: desc(a.decidedAt),
     limit,
     with: {
       tester: { columns: { id: true, firstName: true, lastName: true, city: true } },
@@ -54,8 +55,9 @@ const productAggregates = {
   applicantCount: sql<number>`count(distinct ${a.id}) filter (where ${a.status} <> 'withdrawn')`.mapWith(Number),
   pendingCount: sql<number>`count(distinct ${a.id}) filter (where ${a.status} = 'pending')`.mapWith(Number),
   toShipCount: sql<number>`count(distinct ${a.id}) filter (where ${a.status} = 'accepted')`.mapWith(Number),
-  reviewCount: sql<number>`(select count(*) from ${r} where ${r.productId} = ${p.id})`.mapWith(Number),
-  avgRating: sql<number | null>`(select avg(${r.rating}) from ${r} where ${r.productId} = ${p.id})`.mapWith((v) =>
+  // feste Tabellennamen, damit die Unterabfrage eindeutig auf das Produkt zeigt
+  reviewCount: sql<number>`(select count(*) from reviews rv where rv.product_id = "products"."id")`.mapWith(Number),
+  avgRating: sql<number | null>`(select avg(rv.rating) from reviews rv where rv.product_id = "products"."id")`.mapWith((v) =>
     v == null ? null : Number(v),
   ),
 };

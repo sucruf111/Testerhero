@@ -5,7 +5,7 @@ import { AuthShell } from "@/components/site/auth-shell";
 import { getCurrentTester } from "@/lib/auth/session";
 import { LoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Anmelden" };
+export const metadata: Metadata = { title: "Einloggen" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/anmelden">) {
   const { weiter } = await searchParams;
@@ -14,13 +14,13 @@ export default async function LoginPage({ searchParams }: PageProps<"/anmelden">
 
   return (
     <AuthShell
-      title="Willkommen zurück!"
-      subtitle="Melde dich an, um dich zu bewerben und deine Tests zu verwalten."
+      title="Einloggen"
+      subtitle="Hier siehst du deine Pakete und schreibst deine Bewertungen."
       footer={
         <>
           Noch kein Konto?{" "}
           <Link href="/registrieren" className="font-semibold text-coral-600 hover:text-coral-700">
-            Kostenlos registrieren
+            Kostenlos mitmachen
           </Link>
         </>
       }

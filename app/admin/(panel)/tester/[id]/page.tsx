@@ -39,7 +39,7 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
         back={{ href: "/admin/tester", label: "Tester" }}
         title={
           <span className="flex items-center gap-4">
-            <Avatar name={name} className="size-14 text-base" />
+            <Avatar name={name} className="size-10 text-sm" />
             {name}
           </span>
         }
@@ -47,15 +47,14 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
           <span className="flex flex-wrap items-center gap-2">
             <Badge tone={st.tone}>{st.label}</Badge>
             {tester.emailVerifiedAt ? <Badge tone="green" dot={false}>E-Mail bestätigt</Badge> : <Badge tone="amber" dot={false}>E-Mail unbestätigt</Badge>}
-            {!tester.notifyNewProducts && <Badge tone="slate" dot={false}>Keine Produkt-Mails</Badge>}
           </span>
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[22rem_1fr]">
-        <div className="space-y-6">
-          <Panel title="Kontakt & Lieferadresse">
-            <address className="text-[15px] leading-relaxed not-italic">
+      <div className="grid gap-4 xl:grid-cols-[20rem_1fr]">
+        <div className="space-y-4">
+          <Panel title="Lieferadresse">
+            <address className="text-sm leading-relaxed not-italic">
               {addressLines.map((l, i) => (
                 <span key={i} className={i === 0 ? "block font-semibold" : "block text-ink-soft"}>
                   {l}
@@ -63,7 +62,7 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
               ))}
             </address>
             <CopyAddress text={addressLines.join("\n")} />
-            <div className="mt-5 space-y-2 border-t border-line/70 pt-4 text-sm">
+            <div className="mt-3 space-y-1.5 border-t border-line pt-3 text-sm">
               <a href={`mailto:${tester.email}`} className="flex items-center gap-2 text-ink-soft hover:text-coral-600">
                 <Mail className="size-4 text-muted" /> {tester.email}
               </a>
@@ -76,34 +75,25 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
           </Panel>
 
           <Panel title="Profil">
-            <dl className="space-y-2.5 text-sm">
+            <dl className="space-y-2 text-sm">
               <Row label="Geburtsjahr" value={tester.birthYear ? `${tester.birthYear} (${new Date().getFullYear() - tester.birthYear} J.)` : "–"} />
-              <Row label="Registriert" value={formatDate(tester.createdAt)} />
+              <Row label="Angemeldet seit" value={formatDate(tester.createdAt)} />
               <Row label="Letzter Login" value={formatDateTime(tester.lastLoginAt)} />
               {tester.unsubscribedAt && <Row label="Abgemeldet am" value={formatDate(tester.unsubscribedAt)} />}
             </dl>
-            {tester.interests.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {tester.interests.map((i) => (
-                  <span key={i} className="rounded-full bg-sand px-2.5 py-1 text-xs font-medium text-ink-soft">
-                    {i}
-                  </span>
-                ))}
-              </div>
-            )}
           </Panel>
 
           <Panel title="Interne Notiz">
             <form action={updateTesterNoteAction} className="space-y-3">
               <input type="hidden" name="testerId" value={tester.id} />
-              <Textarea name="adminNote" rows={4} defaultValue={tester.adminNote ?? ""} placeholder="Nur für das Team sichtbar …" />
+              <Textarea name="adminNote" rows={4} defaultValue={tester.adminNote ?? ""} placeholder="Nur für euch sichtbar" />
               <SubmitButton variant="secondary" size="sm">
                 Notiz speichern
               </SubmitButton>
             </form>
           </Panel>
 
-          <Panel title="Verwaltung">
+          <Panel title="Konto">
             <div className="flex flex-col gap-2">
               {tester.status !== "active" && (
                 <StatusButton testerId={tester.id} status="active" icon={<UserCheck />} label="Wieder aktivieren" />
@@ -114,35 +104,35 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
                   status="blocked"
                   icon={<Ban />}
                   label="Sperren"
-                  confirm="Tester sperren? Offene Bewerbungen werden zurückgezogen."
+                  confirm="Tester sperren? Noch nicht verschickte Pakete werden neu ausgelost."
                 />
               )}
               <form action={deleteTesterAction}>
                 <input type="hidden" name="testerId" value={tester.id} />
                 <SubmitButton variant="ghost" size="sm" className="w-full justify-start text-red-700 hover:bg-red-50" confirm={`${name} mit allen Daten endgültig löschen?`}>
-                  <Trash2 /> Endgültig löschen (DSGVO)
+                  <Trash2 /> Mit allen Daten löschen
                 </SubmitButton>
               </form>
             </div>
           </Panel>
         </div>
 
-        <div className="space-y-6">
-          <Panel title={`Bewerbungen & Tests (${tester.applications.length})`} padded={tester.applications.length === 0}>
+        <div className="space-y-4">
+          <Panel title={`Pakete (${tester.applications.length})`} padded={tester.applications.length === 0}>
             {tester.applications.length === 0 ? (
-              <p className="text-sm text-muted">Noch keine Bewerbungen.</p>
+              <p className="text-sm text-muted">Noch keine Pakete.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[36rem]">
-                  <thead className="border-b border-line/70">
+                  <thead className="border-b border-line">
                     <tr>
                       <th className={th}>Produkt</th>
-                      <th className={th}>Beworben</th>
+                      <th className={th}>Ausgelost</th>
                       <th className={th}>Versand</th>
                       <th className={th}>Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line/60">
+                  <tbody className="divide-y divide-line">
                     {tester.applications.map((a) => {
                       const s = APPLICATION_STATUS[a.status];
                       return (
@@ -151,9 +141,8 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
                             <Link href={`/admin/produkte/${a.product.id}`} className="font-semibold hover:text-coral-600">
                               {a.product.title}
                             </Link>
-                            {a.motivation && <p className="mt-0.5 line-clamp-2 max-w-md text-xs text-muted">„{a.motivation}“</p>}
                           </td>
-                          <td className={`${td} text-muted`}>{formatDate(a.createdAt)}</td>
+                          <td className={`${td} text-muted`}>{formatDate(a.decidedAt ?? a.createdAt)}</td>
                           <td className={`${td} text-muted`}>
                             {a.shippedAt ? formatDate(a.shippedAt) : "–"}
                             {a.trackingNumber && <span className="block font-mono text-xs">{a.trackingNumber}</span>}
@@ -172,9 +161,9 @@ export default async function AdminTesterPage({ params }: PageProps<"/admin/test
 
           {reviews.length > 0 && (
             <Panel title={`Bewertungen (${reviews.length})`}>
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {reviews.map((r) => (
-                  <div key={r.id} className="border-b border-line/60 pb-5 last:border-0 last:pb-0">
+                  <div key={r.id} className="border-b border-line pb-4 last:border-0 last:pb-0">
                     <div className="flex flex-wrap items-center gap-3">
                       <Stars value={r.rating} size="sm" />
                       <span className="text-xs font-semibold tracking-wide text-coral-600 uppercase">{r.productTitle}</span>

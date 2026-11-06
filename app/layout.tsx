@@ -1,15 +1,15 @@
-import "@fontsource-variable/fraunces";
+import "@fontsource-variable/bricolage-grotesque";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "TesterHero – Produkte kostenlos testen & ehrlich bewerten",
+    default: "TesterHero – Produkte kostenlos testen und behalten",
     template: "%s · TesterHero",
   },
   description:
-    "Werde Produkttester:in bei TesterHero: Bewirb dich für spannende Produkte, teste sie zu Hause und teile deine ehrliche Meinung.",
+    "Sichere dir neue Produkte kostenlos, teste sie zu Hause und sag uns, wie du sie findest. Das Produkt darfst du behalten.",
   applicationName: "TesterHero",
   openGraph: {
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbf7f1",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
